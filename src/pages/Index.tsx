@@ -2,7 +2,7 @@ import { useState, useEffect } from "react";
 import Icon from "@/components/ui/icon";
 
 type Section = "home" | "about" | "projects" | "news" | "tenders" | "docs" | "contacts";
-type UserRole = "admin" | "user" | null;
+type UserRole = "superadmin" | "contentadmin" | "user" | null;
 interface User { name: string; role: UserRole; email: string; }
 
 // ─── Data ─────────────────────────────────────────────────────────────────────
@@ -48,8 +48,9 @@ function LoginModal({ onClose, onLogin }: { onClose: () => void; onLogin: (u: Us
 
   const submit = (e: React.FormEvent) => {
     e.preventDefault(); setErr("");
-    if (email === "admin@ao-urst.ru" && pw === "admin123") onLogin({ name: "Александр Петров", role: "admin", email });
-    else if (email === "user@ao-urst.ru" && pw === "user123") onLogin({ name: "Мария Иванова", role: "user", email });
+    if (email === "super@ao-urst.ru" && pw === "super123") onLogin({ name: "Иван", role: "superadmin", email });
+    else if (email === "admin@ao-urst.ru" && pw === "admin123") onLogin({ name: "Мария Иванова", role: "contentadmin", email });
+    else if (email === "user@ao-urst.ru" && pw === "user123") onLogin({ name: "Сергей Попов", role: "user", email });
     else setErr("Неверный логин или пароль");
   };
 
@@ -72,7 +73,9 @@ function LoginModal({ onClose, onLogin }: { onClose: () => void; onLogin: (u: Us
         <div className="mx-8 mt-6 px-4 py-3 rounded-lg" style={{ background: "rgba(0,102,255,.06)", border: "1px solid rgba(0,102,255,.15)" }}>
           <div className="text-xs font-semibold mb-1" style={{ color: B, fontFamily: "'Inter',sans-serif" }}>Демо-доступ</div>
           <div className="text-xs leading-relaxed" style={{ color: MUT }}>
-            admin@ao-urst.ru / admin123<br />user@ao-urst.ru / user123
+            <span style={{ color: INK, fontWeight: 600 }}>Суперадмин:</span> super@ao-urst.ru / super123<br />
+            <span style={{ color: INK, fontWeight: 600 }}>Контент-админ:</span> admin@ao-urst.ru / admin123<br />
+            <span style={{ color: INK, fontWeight: 600 }}>Пользователь:</span> user@ao-urst.ru / user123
           </div>
         </div>
         <form onSubmit={submit} className="px-8 py-6 space-y-4">
@@ -104,12 +107,16 @@ function Header({ active, go, user, onLogin, onLogout, mob, setMob }: {
     return () => window.removeEventListener("scroll", h);
   }, []);
 
-  const nav: { key: Section; label: string }[] = [
-    { key: "home", label: "Главная" }, { key: "about", label: "О компании" },
-    { key: "projects", label: "Проекты" }, { key: "news", label: "Новости" },
-    { key: "tenders", label: "Тендеры" }, { key: "docs", label: "Документация" },
+  const allNav: { key: Section; label: string; auth?: boolean }[] = [
+    { key: "home", label: "Главная" },
+    { key: "about", label: "О компании" },
+    { key: "projects", label: "Проекты" },
+    { key: "news", label: "Новости" },
     { key: "contacts", label: "Контакты" },
+    { key: "tenders", label: "Тендеры", auth: true },
+    { key: "docs", label: "Документация", auth: true },
   ];
+  const nav = allNav.filter(item => !item.auth || (user && (user.role === "user" || user.role === "contentadmin")));
 
   // На главной хедер прозрачный поверх тёмного hero, на остальных — всегда тёмный
   const isHome = active === "home";
@@ -151,16 +158,18 @@ function Header({ active, go, user, onLogin, onLogout, mob, setMob }: {
           </div>
         </button>
 
-        {/* Desktop nav */}
-        <nav className="hidden lg:flex items-center gap-7">
-          {nav.map(item => (
-            <button key={item.key} onClick={() => go(item.key)}
-              className={`nav-item ${active === item.key ? "active" : ""}`}
-              style={{ color: active === item.key ? "#fff" : "rgba(255,255,255,.6)" }}>
-              {item.label}
-            </button>
-          ))}
-        </nav>
+        {/* Desktop nav — скрываем для суперадмина */}
+        {user?.role !== "superadmin" && (
+          <nav className="hidden lg:flex items-center gap-7">
+            {nav.map(item => (
+              <button key={item.key} onClick={() => go(item.key)}
+                className={`nav-item ${active === item.key ? "active" : ""}`}
+                style={{ color: active === item.key ? "#fff" : "rgba(255,255,255,.6)" }}>
+                {item.label}
+              </button>
+            ))}
+          </nav>
+        )}
 
         {/* Auth */}
         <div className="flex items-center gap-3">
@@ -171,8 +180,8 @@ function Header({ active, go, user, onLogin, onLogout, mob, setMob }: {
                   className="flex items-center justify-center text-white">{user.name.charAt(0)}</div>
                 <div>
                   <div style={{ color: "#fff", fontSize: ".8rem", fontWeight: 600, fontFamily: "'Inter',sans-serif" }}>{user.name}</div>
-                  <div style={{ color: user.role === "admin" ? "#3385FF" : "rgba(255,255,255,.4)", fontSize: ".68rem", fontFamily: "'Inter',sans-serif" }}>
-                    {user.role === "admin" ? "Администратор" : "Пользователь"}
+                  <div style={{ fontSize: ".68rem", fontFamily: "'Inter',sans-serif", color: user.role === "superadmin" ? "#f59e0b" : user.role === "contentadmin" ? "#3385FF" : "rgba(255,255,255,.4)" }}>
+                    {user.role === "superadmin" ? "Суперадмин" : user.role === "contentadmin" ? "Контент-админ" : "Пользователь"}
                   </div>
                 </div>
               </div>
@@ -795,6 +804,227 @@ function ContactsSection() {
   );
 }
 
+// ─── Superadmin Dashboard ─────────────────────────────────────────────────────
+function SuperAdminDashboard({ user, onLogout }: { user: User; onLogout: () => void }) {
+  const statCards = [
+    { icon: "Newspaper", label: "Новости", value: 12, sub: "+3 за неделю", color: "#0066FF" },
+    { icon: "HardHat", label: "Проекты", value: 8, sub: "+2 за месяц", color: "#8b5cf6" },
+    { icon: "FileText", label: "Тендеры", value: 5, sub: "+1 за неделю", color: "#f59e0b" },
+    { icon: "Users", label: "Пользователи", value: 45, sub: "+5 за неделю", color: "#10b981" },
+  ];
+  const recentNews = [
+    { title: "Завершено строительство моста", date: "15.04.2026", draft: false },
+    { title: "Получен сертификат ISO 9001", date: "10.04.2026", draft: false },
+    { title: "Новый проект метро", date: "—", draft: true },
+  ];
+  const recentUsers = [
+    { name: "Иванов И.", when: "сегодня" },
+    { name: "Петров П.", when: "вчера" },
+    { name: "Сидорова А.", when: "2 дня назад" },
+  ];
+  const actions = [
+    { icon: "Plus", label: "Добавить новость" },
+    { icon: "Plus", label: "Добавить проект" },
+    { icon: "Plus", label: "Добавить тендер" },
+    { icon: "UserPlus", label: "Добавить пользователя" },
+    { icon: "FilePlus", label: "Добавить документ" },
+    { icon: "Settings", label: "Настройки" },
+  ];
+
+  return (
+    <div style={{ background: "#F7F8FC", minHeight: "100vh", paddingTop: 90 }}>
+      {/* Top bar */}
+      <div style={{ background: INK, borderBottom: "1px solid rgba(255,255,255,.06)" }} className="px-6 py-4">
+        <div className="max-w-7xl mx-auto flex items-center justify-between">
+          <div>
+            <div style={{ fontFamily: "'Inter',sans-serif", fontWeight: 800, fontSize: "1.1rem", color: "#fff", letterSpacing: "-.02em" }}>Дашборд АО УРСТ</div>
+            <div style={{ fontSize: ".78rem", color: "rgba(255,255,255,.4)", marginTop: 2 }}>Панель суперадминистратора</div>
+          </div>
+          <div style={{ fontSize: ".88rem", color: "rgba(255,255,255,.7)", fontFamily: "'Inter',sans-serif" }}>
+            Здравствуйте, <span style={{ color: "#fff", fontWeight: 600 }}>{user.name}</span>
+          </div>
+        </div>
+      </div>
+
+      <div className="max-w-7xl mx-auto px-6 py-8 space-y-6">
+        {/* Stat cards */}
+        <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+          {statCards.map((s, i) => (
+            <div key={i} className="bg-white rounded-2xl p-5 card-lift" style={{ border: "1px solid #E4E8F0" }}>
+              <div style={{ width: 40, height: 40, borderRadius: 10, background: s.color + "18", marginBottom: 12 }} className="flex items-center justify-center">
+                <Icon name={s.icon as "Users"} size={20} style={{ color: s.color }} />
+              </div>
+              <div style={{ fontFamily: "'Inter',sans-serif", fontWeight: 800, fontSize: "1.8rem", color: INK, letterSpacing: "-.03em", lineHeight: 1 }}>{s.value}</div>
+              <div style={{ fontSize: ".8rem", fontWeight: 600, color: INK, fontFamily: "'Inter',sans-serif", marginTop: 4 }}>{s.label}</div>
+              <div style={{ fontSize: ".72rem", color: s.color, marginTop: 3 }}>{s.sub}</div>
+            </div>
+          ))}
+        </div>
+
+        {/* Badges row */}
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <div className="bg-white rounded-2xl px-5 py-4 flex items-center gap-3" style={{ border: "1px solid #E4E8F0" }}>
+            <Icon name="FileEdit" size={18} style={{ color: "#f59e0b" }} />
+            <span style={{ fontFamily: "'Inter',sans-serif", fontWeight: 600, fontSize: ".88rem", color: INK }}>Черновики: <span style={{ color: "#f59e0b" }}>2</span></span>
+          </div>
+          <div className="bg-white rounded-2xl px-5 py-4 flex items-center gap-3" style={{ border: "1px solid #E4E8F0" }}>
+            <Icon name="Clock" size={18} style={{ color: "#ef4444" }} />
+            <span style={{ fontFamily: "'Inter',sans-serif", fontWeight: 600, fontSize: ".88rem", color: INK }}>Скоро закрываются тендеры: <span style={{ color: "#ef4444" }}>3</span></span>
+          </div>
+        </div>
+
+        {/* Tables row */}
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <div className="bg-white rounded-2xl p-5" style={{ border: "1px solid #E4E8F0" }}>
+            <div style={{ fontFamily: "'Inter',sans-serif", fontWeight: 700, fontSize: ".88rem", color: INK, marginBottom: 14, letterSpacing: ".04em", textTransform: "uppercase" }}>Последние новости</div>
+            <div className="space-y-2.5">
+              {recentNews.map((n, i) => (
+                <div key={i} className="flex items-center gap-3">
+                  <div style={{ width: 6, height: 6, borderRadius: "50%", background: n.draft ? "#f59e0b" : B, flexShrink: 0 }} />
+                  <span style={{ fontSize: ".85rem", color: INK, flex: 1 }}>{n.title}</span>
+                  {n.draft ? (
+                    <span style={{ fontSize: ".7rem", background: "rgba(245,158,11,.1)", color: "#f59e0b", padding: "2px 8px", borderRadius: 999, fontWeight: 600 }}>черновик</span>
+                  ) : (
+                    <span style={{ fontSize: ".72rem", color: MUT }}>{n.date}</span>
+                  )}
+                </div>
+              ))}
+            </div>
+          </div>
+          <div className="bg-white rounded-2xl p-5" style={{ border: "1px solid #E4E8F0" }}>
+            <div style={{ fontFamily: "'Inter',sans-serif", fontWeight: 700, fontSize: ".88rem", color: INK, marginBottom: 14, letterSpacing: ".04em", textTransform: "uppercase" }}>Последние пользователи</div>
+            <div className="space-y-2.5">
+              {recentUsers.map((u, i) => (
+                <div key={i} className="flex items-center gap-3">
+                  <div style={{ width: 30, height: 30, borderRadius: 8, background: B + "18", flexShrink: 0 }} className="flex items-center justify-center">
+                    <Icon name="User" size={14} style={{ color: B }} />
+                  </div>
+                  <span style={{ fontSize: ".85rem", color: INK, flex: 1 }}>{u.name}</span>
+                  <span style={{ fontSize: ".72rem", color: MUT }}>{u.when}</span>
+                </div>
+              ))}
+            </div>
+          </div>
+        </div>
+
+        {/* Actions */}
+        <div className="bg-white rounded-2xl p-5" style={{ border: "1px solid #E4E8F0" }}>
+          <div style={{ fontFamily: "'Inter',sans-serif", fontWeight: 700, fontSize: ".88rem", color: INK, marginBottom: 14, letterSpacing: ".04em", textTransform: "uppercase" }}>Быстрые действия</div>
+          <div className="flex flex-wrap gap-3">
+            {actions.map((a, i) => (
+              <button key={i} className="flex items-center gap-2 px-4 py-2 rounded-xl transition-all"
+                style={{ background: "#F7F8FC", border: "1.5px solid #E4E8F0", fontSize: ".82rem", fontFamily: "'Inter',sans-serif", fontWeight: 600, color: INK }}
+                onMouseEnter={e => { (e.currentTarget as HTMLElement).style.borderColor = B; (e.currentTarget as HTMLElement).style.color = B; }}
+                onMouseLeave={e => { (e.currentTarget as HTMLElement).style.borderColor = "#E4E8F0"; (e.currentTarget as HTMLElement).style.color = INK; }}>
+                <Icon name={a.icon as "Plus"} size={14} /> {a.label}
+              </button>
+            ))}
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+// ─── ContentAdmin Dashboard ───────────────────────────────────────────────────
+function ContentAdminDashboard({ user }: { user: User }) {
+  const statCards = [
+    { icon: "Newspaper", label: "Новости", value: 12, sub: "+3 за неделю", color: "#0066FF" },
+    { icon: "HardHat", label: "Проекты", value: 8, sub: "+2 за месяц", color: "#8b5cf6" },
+    { icon: "FileText", label: "Тендеры", value: 5, sub: "+1 за неделю", color: "#f59e0b" },
+  ];
+  const recentNews = [
+    { title: "Завершено строительство моста", date: "15.04.2026", draft: false },
+    { title: "Получен сертификат ISO 9001", date: "10.04.2026", draft: false },
+    { title: "Новый проект метро (черновик)", date: "—", draft: true, own: true },
+  ];
+  const actions = [
+    { icon: "Plus", label: "Добавить новость" },
+    { icon: "Plus", label: "Добавить проект" },
+  ];
+
+  return (
+    <div style={{ background: "#F7F8FC", minHeight: "100vh", paddingTop: 90 }}>
+      {/* Top bar */}
+      <div style={{ background: INK, borderBottom: "1px solid rgba(255,255,255,.06)" }} className="px-6 py-4">
+        <div className="max-w-7xl mx-auto flex items-center justify-between">
+          <div>
+            <div style={{ fontFamily: "'Inter',sans-serif", fontWeight: 800, fontSize: "1.1rem", color: "#fff", letterSpacing: "-.02em" }}>Дашборд АО УРСТ</div>
+            <div style={{ fontSize: ".78rem", color: "rgba(255,255,255,.4)", marginTop: 2 }}>Панель контент-администратора</div>
+          </div>
+          <div style={{ fontSize: ".88rem", color: "rgba(255,255,255,.7)", fontFamily: "'Inter',sans-serif" }}>
+            Здравствуйте, <span style={{ color: "#fff", fontWeight: 600 }}>{user.name}</span>
+          </div>
+        </div>
+      </div>
+
+      <div className="max-w-7xl mx-auto px-6 py-8 space-y-6">
+        {/* Stat cards */}
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+          {statCards.map((s, i) => (
+            <div key={i} className="bg-white rounded-2xl p-5 card-lift" style={{ border: "1px solid #E4E8F0" }}>
+              <div style={{ width: 40, height: 40, borderRadius: 10, background: s.color + "18", marginBottom: 12 }} className="flex items-center justify-center">
+                <Icon name={s.icon as "Users"} size={20} style={{ color: s.color }} />
+              </div>
+              <div style={{ fontFamily: "'Inter',sans-serif", fontWeight: 800, fontSize: "1.8rem", color: INK, letterSpacing: "-.03em", lineHeight: 1 }}>{s.value}</div>
+              <div style={{ fontSize: ".8rem", fontWeight: 600, color: INK, fontFamily: "'Inter',sans-serif", marginTop: 4 }}>{s.label}</div>
+              <div style={{ fontSize: ".72rem", color: s.color, marginTop: 3 }}>{s.sub}</div>
+            </div>
+          ))}
+        </div>
+
+        {/* Badges */}
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <div className="bg-white rounded-2xl px-5 py-4 flex items-center gap-3" style={{ border: "1px solid #E4E8F0" }}>
+            <Icon name="FileEdit" size={18} style={{ color: "#f59e0b" }} />
+            <span style={{ fontFamily: "'Inter',sans-serif", fontWeight: 600, fontSize: ".88rem", color: INK }}>Черновики: <span style={{ color: "#f59e0b" }}>2</span></span>
+          </div>
+          <div className="bg-white rounded-2xl px-5 py-4 flex items-center gap-3" style={{ border: "1px solid #E4E8F0" }}>
+            <Icon name="Clock" size={18} style={{ color: "#ef4444" }} />
+            <span style={{ fontFamily: "'Inter',sans-serif", fontWeight: 600, fontSize: ".88rem", color: INK }}>Скоро закрываются тендеры: <span style={{ color: "#ef4444" }}>3</span></span>
+          </div>
+        </div>
+
+        {/* News table */}
+        <div className="bg-white rounded-2xl p-5" style={{ border: "1px solid #E4E8F0" }}>
+          <div style={{ fontFamily: "'Inter',sans-serif", fontWeight: 700, fontSize: ".88rem", color: INK, marginBottom: 14, letterSpacing: ".04em", textTransform: "uppercase" }}>Последние новости</div>
+          <div className="space-y-3">
+            {recentNews.map((n, i) => (
+              <div key={i} className="flex items-center gap-3">
+                <div style={{ width: 6, height: 6, borderRadius: "50%", background: n.draft ? "#f59e0b" : B, flexShrink: 0 }} />
+                <span style={{ fontSize: ".85rem", color: INK, flex: 1 }}>{n.title}</span>
+                {n.draft ? (
+                  <div className="flex items-center gap-2">
+                    {n.own && <span style={{ fontSize: ".7rem", color: MUT }}>← только вы видите</span>}
+                    <span style={{ fontSize: ".7rem", background: "rgba(245,158,11,.1)", color: "#f59e0b", padding: "2px 8px", borderRadius: 999, fontWeight: 600 }}>черновик</span>
+                  </div>
+                ) : (
+                  <span style={{ fontSize: ".72rem", color: MUT }}>{n.date}</span>
+                )}
+              </div>
+            ))}
+          </div>
+        </div>
+
+        {/* Actions */}
+        <div className="bg-white rounded-2xl p-5" style={{ border: "1px solid #E4E8F0" }}>
+          <div style={{ fontFamily: "'Inter',sans-serif", fontWeight: 700, fontSize: ".88rem", color: INK, marginBottom: 14, letterSpacing: ".04em", textTransform: "uppercase" }}>Быстрые действия</div>
+          <div className="flex flex-wrap gap-3">
+            {actions.map((a, i) => (
+              <button key={i} className="flex items-center gap-2 px-4 py-2 rounded-xl transition-all"
+                style={{ background: "#F7F8FC", border: "1.5px solid #E4E8F0", fontSize: ".82rem", fontFamily: "'Inter',sans-serif", fontWeight: 600, color: INK }}
+                onMouseEnter={e => { (e.currentTarget as HTMLElement).style.borderColor = B; (e.currentTarget as HTMLElement).style.color = B; }}
+                onMouseLeave={e => { (e.currentTarget as HTMLElement).style.borderColor = "#E4E8F0"; (e.currentTarget as HTMLElement).style.color = INK; }}>
+                <Icon name={a.icon as "Plus"} size={14} /> {a.label}
+              </button>
+            ))}
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+}
+
 // ─── Footer ───────────────────────────────────────────────────────────────────
 function Footer({ go }: { go: (s: Section) => void }) {
   const labels: Record<Section, string> = { home: "Главная", about: "О компании", projects: "Проекты", news: "Новости", tenders: "Тендеры", docs: "Документация", contacts: "Контакты" };
@@ -862,9 +1092,33 @@ export default function Index() {
 
   const go = (s: Section) => { setSection(s); setMob(false); };
 
+  const logout = () => { setUser(null); go("home"); };
+
+  // Суперадмин видит только дашборд
+  if (user?.role === "superadmin") {
+    return (
+      <div>
+        <Header active={section} go={go} user={user} onLogin={() => setShowLogin(true)} onLogout={logout} mob={mob} setMob={setMob} />
+        <SuperAdminDashboard user={user} onLogout={logout} />
+        {showLogin && <LoginModal onClose={() => setShowLogin(false)} onLogin={u => { setUser(u); setShowLogin(false); }} />}
+      </div>
+    );
+  }
+
+  // Контент-админ видит дашборд
+  if (user?.role === "contentadmin") {
+    return (
+      <div>
+        <Header active={section} go={go} user={user} onLogin={() => setShowLogin(true)} onLogout={logout} mob={mob} setMob={setMob} />
+        <ContentAdminDashboard user={user} />
+        {showLogin && <LoginModal onClose={() => setShowLogin(false)} onLogin={u => { setUser(u); setShowLogin(false); }} />}
+      </div>
+    );
+  }
+
   return (
     <div>
-      <Header active={section} go={go} user={user} onLogin={() => setShowLogin(true)} onLogout={() => setUser(null)} mob={mob} setMob={setMob} />
+      <Header active={section} go={go} user={user} onLogin={() => setShowLogin(true)} onLogout={logout} mob={mob} setMob={setMob} />
       <main>
         {section === "home"     && <HomeSection go={go} />}
         {section === "about"    && <AboutSection />}
