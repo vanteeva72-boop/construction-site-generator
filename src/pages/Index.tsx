@@ -141,6 +141,10 @@ function Header({ active, go, user, onLogin, onLogout, mob, setMob }: {
             <img src="https://cdn.poehali.dev/projects/232d353a-884c-46d3-ba1a-b2a0e421060f/bucket/f7e42cde-bc9f-49ef-9ea5-01f05ae05665.png"
               alt="АО УРСТ" style={{ height: 34, width: "auto", display: "block" }} />
           </div>
+          <div className="leading-tight">
+            <div style={{ fontFamily: "'Inter',sans-serif", fontWeight: 800, fontSize: ".95rem", color: "#fff", letterSpacing: "-.01em" }}>АО УРСТ</div>
+            <div style={{ fontSize: ".6rem", color: "rgba(255,255,255,.45)", letterSpacing: ".1em", fontFamily: "'Inter',sans-serif" }}>СТРОИТЕЛЬНАЯ КОМПАНИЯ</div>
+          </div>
         </button>
 
         {/* Desktop nav */}
@@ -253,8 +257,8 @@ function HomeSection({ go }: { go: (s: Section) => void }) {
             <div className="hidden lg:flex items-center justify-center animate-fade-up d-200" style={{ opacity: 0 }}>
               <div style={{ borderRadius: 20, overflow: "hidden", boxShadow: "0 32px 80px rgba(0,0,0,.5)", border: "1px solid rgba(255,255,255,.08)" }}>
                 <img
-                  src="https://cdn.poehali.dev/projects/232d353a-884c-46d3-ba1a-b2a0e421060f/files/5dcc861c-9695-40f3-a9b3-c963da3c8aa5.jpg"
-                  alt="Строительство"
+                  src="https://cdn.poehali.dev/projects/232d353a-884c-46d3-ba1a-b2a0e421060f/files/bd1efb26-9159-4593-b3b4-35f24f64ad35.jpg"
+                  alt="Строительство инфраструктуры"
                   style={{ width: "100%", height: 420, objectFit: "cover", display: "block" }}
                 />
               </div>
@@ -280,13 +284,24 @@ function HomeSection({ go }: { go: (s: Section) => void }) {
       {/* ── Services ────────────────────────── */}
       <section className="py-24 bg-white">
         <div className="max-w-7xl mx-auto px-6">
-          <div className="mb-14 max-w-2xl">
-            <div className="section-label mb-2">Направления</div>
-            <div className="accent-bar mb-4" />
-            <h2 className="section-title mb-5">Что мы строим</h2>
-            <p style={{ color: MUT, lineHeight: 1.7, fontSize: ".95rem" }}>
-              Акционерное Общество «Управление Развития Строительных Технологий» выполняет широкий перечень услуг, связанный с разработкой проектов в строительной сфере, проектированием и строительством объектов гражданского назначения.
-            </p>
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 items-center mb-14">
+            <div>
+              <div className="section-label mb-2">Направления</div>
+              <div className="accent-bar mb-4" />
+              <h2 className="section-title mb-5">Что мы строим</h2>
+              <p style={{ color: MUT, lineHeight: 1.7, fontSize: ".95rem" }}>
+                Акционерное Общество «Управление Развития Строительных Технологий» выполняет широкий перечень услуг, связанный с разработкой проектов в строительной сфере, проектированием и строительством объектов гражданского назначения.
+              </p>
+            </div>
+            <div className="hidden lg:block">
+              <div style={{ borderRadius: 20, overflow: "hidden", boxShadow: "0 16px 48px rgba(10,15,30,.12)" }}>
+                <img
+                  src="https://cdn.poehali.dev/projects/232d353a-884c-46d3-ba1a-b2a0e421060f/files/75f7704f-4a3a-4cd1-ace5-32e9fce13c32.jpg"
+                  alt="Строительство"
+                  style={{ width: "100%", height: 320, objectFit: "cover", display: "block" }}
+                />
+              </div>
+            </div>
           </div>
 
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
@@ -784,8 +799,9 @@ function Footer({ go }: { go: (s: Section) => void }) {
       <div className="max-w-7xl mx-auto px-6 py-14 grid grid-cols-1 md:grid-cols-4 gap-10">
         <div>
           <div className="flex items-center gap-3 mb-4">
-            <div style={{ background: B, width: 30, height: 30, borderRadius: 7, boxShadow: "0 4px 10px rgba(0,102,255,.35)" }} className="flex items-center justify-center">
-              <Icon name="Building2" size={15} className="text-white" />
+            <div style={{ borderRadius: 7, overflow: "hidden", boxShadow: "0 4px 10px rgba(0,102,255,.35)" }} className="flex-shrink-0">
+              <img src="https://cdn.poehali.dev/projects/232d353a-884c-46d3-ba1a-b2a0e421060f/bucket/f7e42cde-bc9f-49ef-9ea5-01f05ae05665.png"
+                alt="АО УРСТ" style={{ height: 30, width: "auto", display: "block" }} />
             </div>
             <div>
               <div style={{ fontFamily: "'Inter',sans-serif", fontWeight: 800, fontSize: ".9rem", color: "#fff" }}>АО УРСТ</div>
@@ -818,11 +834,11 @@ function Footer({ go }: { go: (s: Section) => void }) {
             © 2026 АО «УРСТ». Все права защищены.
           </div>
           <div className="flex items-center gap-3">
-            <span style={{ fontSize: ".7rem", color: "rgba(255,255,255,.25)", fontFamily: "'Inter',sans-serif" }}>Входит в группу</span>
+            <span style={{ fontSize: ".7rem", color: "rgba(255,255,255,.4)", fontFamily: "'Inter',sans-serif" }}>Входит в группу</span>
             <img
               src="https://cdn.poehali.dev/projects/232d353a-884c-46d3-ba1a-b2a0e421060f/bucket/13ef7463-bb6a-411e-a582-2df6633a7c73.png"
               alt="Мосинжпроект"
-              style={{ height: 22, width: "auto", opacity: 0.55, filter: "brightness(0) invert(1)" }}
+              style={{ height: 26, width: "auto", display: "block" }}
             />
           </div>
         </div>
