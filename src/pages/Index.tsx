@@ -215,9 +215,9 @@ function PageHeader({ label, title, sub }: { label: string; title: string; sub: 
 function HomeSection({ go }: { go: (s: Section) => void }) {
   const stats = [
     { value: "13+", label: "Лет на рынке" },
-    { value: "120+", label: "Объектов сдано" },
+    { value: "250 млн. руб.", label: "Составляет уставный капитал" },
     { value: "350 км", label: "Тоннелей и дорог" },
-    { value: "98%", label: "Проектов в срок" },
+    { value: "9000+", label: "Закупок у поставщиков" },
   ];
   const services = [
     { icon: "Train", title: "Метро и тоннели", text: "Строительство и проектирование линий метро (глубокого и мелкого заложения), электродепо, тоннелей." },
@@ -358,7 +358,7 @@ function AboutSection() {
     { icon: "TrendingUp", title: "Развитие", text: "Постоянное инвестирование в оборудование и обучение персонала." },
   ];
   const team = [
-    { name: "Дмитрий Соколов", role: "Генеральный директор", exp: "20 лет в строительстве" },
+    { name: "Смирнов Игорь", role: "Генеральный директор", exp: "20 лет в строительстве" },
     { name: "Елена Миронова", role: "Главный инженер", exp: "15 лет в отрасли" },
     { name: "Алексей Варшавский", role: "Директор по проектам", exp: "12 лет в управлении" },
     { name: "Ирина Федотова", role: "Финансовый директор", exp: "10 лет в финансах" },
@@ -366,7 +366,7 @@ function AboutSection() {
 
   return (
     <div className="pt-24">
-      <PageHeader label="О нас" title="О компании" sub="АО «УРСТ» — одна из ведущих строительных компаний с 13-летней историей." />
+      <PageHeader label="О нас" title="О компании" sub="Строим инфраструктуру Москвы с 1931 года." />
 
       <section className="py-20 bg-white">
         <div className="max-w-7xl mx-auto px-6 grid grid-cols-1 lg:grid-cols-2 gap-16 items-center">
@@ -374,7 +374,10 @@ function AboutSection() {
             <div className="section-label mb-2">История</div>
             <div className="accent-bar mb-4" />
             <h2 className="section-title mb-6">Миссия и история</h2>
-            <p style={{ color: MUT, lineHeight: 1.75, marginBottom: 16 }}>Компания основана в 2013 году. Начав с проектных работ, сегодня мы реализуем масштабные инфраструктурные проекты по всей России — метро, дороги, ПГС, инженерные сети.</p>
+            <p style={{ color: MUT, lineHeight: 1.75, marginBottom: 12 }}>Официальную историю АО «УРСТ» ведет с 1953 года, с реорганизации Краснопресненского ремонтно-строительного треста.</p>
+            <p style={{ color: MUT, lineHeight: 1.75, marginBottom: 12 }}>За двадцать последующих лет трест серьезно расширил сферу своих компетенций: к началу 1980-х в его составе было уже пять управлений: 3 строительных и 2 ремонтных. В штате насчитывалось порядка 1700 работников, а показатели сдачи жилья достигли 60–75 тысяч квадратных метров в год.</p>
+            <p style={{ color: MUT, lineHeight: 1.75, marginBottom: 12 }}>В 2013 году сложилось современное наименование предприятия — из Государственного Унитарного Предприятия города Москвы «Управление развития строительных технологий» оно было преобразовано в АО «УРСТ». Единственным акционером АО «УРСТ» является акционерное общество «Мосинжпроект» со 100%-ой долей уставного капитала.</p>
+            <p style={{ color: MUT, lineHeight: 1.75, marginBottom: 16 }}>АО «УРСТ» зарекомендовало себя как надёжного партнера и качественного исполнителя строительных работ на самых сложных направлениях.</p>
             <p style={{ color: MUT, lineHeight: 1.75 }}>Наша миссия — создавать объекты, которые служат людям десятилетиями: надёжные, функциональные, современные.</p>
             <div className="flex flex-wrap gap-8 mt-10">
               {[["2013", "Год основания"], ["120+", "Объектов сдано"], ["350 км", "Тоннелей и дорог"]].map(([v, l]) => (
@@ -684,7 +687,7 @@ function DocsSection({ user }: { user: User | null }) {
 // ─── Contacts ─────────────────────────────────────────────────────────────────
 function ContactsSection() {
   const offices = [
-    { city: "Москва (Главный офис)", address: "ул. Строителей, д. 18, стр. 2", phone: "+7 (495) 940-07-03", email: "info@ao-urst.ru" },
+    { city: "Москва (Главный офис)", address: "г. Москва, ул. Климашкина 22 с 2", phone: "+7 (495) 940-07-03", email: "info@ao-urst.ru" },
     { city: "Санкт-Петербург", address: "Невский пр., д. 112, оф. 304", phone: "+7 (812) 940-07-03", email: "spb@ao-urst.ru" },
     { city: "Екатеринбург", address: "ул. Ленина, д. 52, оф. 201", phone: "+7 (343) 940-07-03", email: "ekb@ao-urst.ru" },
   ];
@@ -792,17 +795,11 @@ function Footer({ go }: { go: (s: Section) => void }) {
           </div>
         </div>
         <div>
-          <div style={{ fontSize: ".7rem", fontWeight: 700, letterSpacing: ".1em", color: "rgba(255,255,255,.3)", textTransform: "uppercase", marginBottom: 12, fontFamily: "'Inter',sans-serif" }}>Услуги</div>
-          <div className="space-y-2" style={{ fontSize: ".82rem", color: "rgba(255,255,255,.4)" }}>
-            {["Метро и тоннели", "Дорожное строительство", "ПГС", "Инженерная инфраструктура", "Проектирование"].map(s => <div key={s}>{s}</div>)}
-          </div>
-        </div>
-        <div>
           <div style={{ fontSize: ".7rem", fontWeight: 700, letterSpacing: ".1em", color: "rgba(255,255,255,.3)", textTransform: "uppercase", marginBottom: 12, fontFamily: "'Inter',sans-serif" }}>Контакты</div>
           <div className="space-y-2.5" style={{ fontSize: ".82rem", color: "rgba(255,255,255,.4)" }}>
             <div className="flex items-center gap-2"><Icon name="Phone" size={11} /> +7 (495) 940-07-03</div>
             <div className="flex items-center gap-2"><Icon name="Mail" size={11} /> info@ao-urst.ru</div>
-            <div className="flex items-center gap-2"><Icon name="MapPin" size={11} /> Москва, ул. Строителей, 18</div>
+            <div className="flex items-center gap-2"><Icon name="MapPin" size={11} /> г. Москва, ул. Климашкина 22 с 2</div>
           </div>
         </div>
       </div>
