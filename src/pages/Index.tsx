@@ -111,13 +111,17 @@ function Header({ active, go, user, onLogin, onLogout, mob, setMob }: {
     { key: "contacts", label: "Контакты" },
   ];
 
+  // На главной хедер прозрачный поверх тёмного hero, на остальных — всегда тёмный
+  const isHome = active === "home";
+  const solid = !isHome || scrolled;
+
   return (
     <header className="fixed top-0 left-0 right-0 z-50 transition-all duration-300"
       style={{
-        background: scrolled ? "rgba(5,9,26,.92)" : "transparent",
-        backdropFilter: scrolled ? "blur(20px)" : "none",
-        WebkitBackdropFilter: scrolled ? "blur(20px)" : "none",
-        borderBottom: scrolled ? "1px solid rgba(255,255,255,.07)" : "none",
+        background: solid ? "rgba(5,9,26,.96)" : "transparent",
+        backdropFilter: solid ? "blur(20px)" : "none",
+        WebkitBackdropFilter: solid ? "blur(20px)" : "none",
+        borderBottom: solid ? "1px solid rgba(255,255,255,.07)" : "none",
       }}>
       {/* Top contact bar */}
       <div className="hidden md:block" style={{ background: "rgba(0,102,255,.9)", backdropFilter: "blur(8px)" }}>
