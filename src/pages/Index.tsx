@@ -206,7 +206,7 @@ function Header({ active, go, user, onLogin, onLogout, mob, setMob }: {
 // ─── Page Header (inner pages) ────────────────────────────────────────────────
 function PageHeader({ label, title, sub }: { label: string; title: string; sub: string }) {
   return (
-    <div style={{ background: INK, paddingTop: 100 }} className="pb-14 px-4">
+    <div style={{ background: INK, paddingTop: 90 }} className="pb-14 px-4 mt-0">
       <div className="max-w-7xl mx-auto">
         <div className="chip mb-4">{label}</div>
         <h1 style={{ fontFamily: "'Inter',sans-serif", fontWeight: 800, fontSize: "clamp(2rem,4vw,3rem)", color: "#fff", letterSpacing: "-.03em", lineHeight: 1.1 }} className="mb-3">{title}</h1>
@@ -393,7 +393,7 @@ function AboutSection() {
   ];
 
   return (
-    <div className="pt-24">
+    <div>
       <PageHeader label="О нас" title="О компании" sub="Строим инфраструктуру Москвы с 1931 года." />
 
       <section className="py-20 bg-white">
@@ -480,7 +480,7 @@ function ProjectsSection() {
   const filtered = filter === "Все" ? PROJECTS : PROJECTS.filter(p => p.type === filter);
 
   return (
-    <div className="pt-24">
+    <div>
       <PageHeader label="Портфолио" title="Проекты" sub="120+ реализованных объектов по всей России." />
       <div className="py-16 bg-white">
         <div className="max-w-7xl mx-auto px-6">
@@ -532,7 +532,7 @@ function ProjectsSection() {
 // ─── News ─────────────────────────────────────────────────────────────────────
 function NewsSection() {
   return (
-    <div className="pt-24">
+    <div>
       <PageHeader label="Пресс-центр" title="Новости" sub="Актуальные события компании и отрасли." />
       <div className="py-16 bg-white">
         <div className="max-w-7xl mx-auto px-6">
@@ -586,7 +586,7 @@ function TendersSection({ user }: { user: User | null }) {
   const filtered = TENDERS.filter(t => t.status === tab);
 
   return (
-    <div className="pt-24">
+    <div>
       <PageHeader label="Закупки" title="Тендеры" sub="Актуальные конкурсные процедуры компании." />
       <div className="py-16 bg-white">
         <div className="max-w-7xl mx-auto px-6">
@@ -650,7 +650,7 @@ function DocsSection({ user }: { user: User | null }) {
   const filtered = cat === "Все" ? DOCS : DOCS.filter(d => d.category === cat);
 
   return (
-    <div className="pt-24">
+    <div>
       <PageHeader label="Документы" title="Документация" sub="Лицензии, сертификаты и корпоративные документы компании." />
       <div className="py-16 bg-white">
         <div className="max-w-7xl mx-auto px-6">
@@ -721,7 +721,7 @@ function ContactsSection() {
   ];
 
   return (
-    <div className="pt-24">
+    <div>
       <PageHeader label="Связь" title="Контакты" sub="Мы работаем по всей России. Напишите или позвоните." />
       <div className="py-16 bg-white">
         <div className="max-w-7xl mx-auto px-6 grid grid-cols-1 lg:grid-cols-2 gap-12">
