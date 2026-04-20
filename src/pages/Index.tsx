@@ -118,9 +118,10 @@ function Header({ active, go, user, onLogin, onLogout, mob, setMob }: {
   ];
   const nav = allNav.filter(item => !item.auth || (user && (user.role === "user" || user.role === "contentadmin")));
 
-  // На главной хедер прозрачный поверх тёмного hero, на остальных — всегда тёмный
+  // Прозрачный только на главной для обычных пользователей, для админов всегда тёмный
   const isHome = active === "home";
-  const solid = !isHome || scrolled;
+  const isAdmin = user?.role === "superadmin" || user?.role === "contentadmin";
+  const solid = !isHome || scrolled || isAdmin;
 
   return (
     <header className="fixed top-0 left-0 right-0 z-50 transition-all duration-300"
