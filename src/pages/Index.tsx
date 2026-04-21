@@ -852,17 +852,13 @@ function ContactsSection({ user, onLogin }: { user: User | null; onLogin: () => 
               ))}
             </div>
 
-            {/* Logo */}
-            <div className="flex items-center gap-3 mb-6 p-4 rounded-2xl" style={{ background: INK }}>
+            {/* Logo image */}
+            <div className="flex justify-center mb-6">
               <img
-                src="https://cdn.poehali.dev/projects/232d353a-884c-46d3-ba1a-b2a0e421060f/bucket/13ef7463-bb6a-411e-a582-2df6633a7c73.png"
+                src="https://cdn.poehali.dev/projects/232d353a-884c-46d3-ba1a-b2a0e421060f/bucket/1b667fb6-31e5-453c-b2fd-55ea9701ab44.jpg"
                 alt="АО УРСТ"
-                style={{ height: 36, width: "auto", objectFit: "contain", filter: "brightness(0) invert(1)" }}
+                style={{ height: 80, width: "auto", objectFit: "contain" }}
               />
-              <div>
-                <div style={{ fontFamily: "'Inter',sans-serif", fontWeight: 800, fontSize: ".9rem", color: "#fff" }}>АО УРСТ</div>
-                <div style={{ fontSize: ".7rem", color: "rgba(255,255,255,.4)" }}>с 2013 года</div>
-              </div>
             </div>
 
             {/* Реквизиты */}
@@ -899,6 +895,25 @@ function ContactsSection({ user, onLogin }: { user: User | null; onLogin: () => 
                 </div>
               </div>
             </div>
+          </div>
+        </div>
+      </div>
+
+      {/* Map */}
+      <div className="bg-white pb-16">
+        <div className="max-w-7xl mx-auto px-6">
+          <div className="section-label mb-2">Расположение</div>
+          <div className="accent-bar mb-5" />
+          <h2 className="section-title mb-7">На карте</h2>
+          <div className="rounded-2xl overflow-hidden" style={{ border: "1px solid #E4E8F0", height: 400 }}>
+            <iframe
+              src="https://yandex.ru/map-widget/v1/?ll=37.565%2C55.757&z=12&pt=37.5596%2C55.7606%2Cpm2bll~37.5420%2C55.7672%2Cpm2bll&l=map"
+              width="100%"
+              height="100%"
+              style={{ border: 0, display: "block" }}
+              allowFullScreen
+              title="Офисы АО УРСТ на карте"
+            />
           </div>
         </div>
       </div>
