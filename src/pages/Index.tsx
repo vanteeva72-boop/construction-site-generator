@@ -2931,8 +2931,8 @@ export default function Index() {
       <div>
         {isPublicSection ? (
           <main>
-            {section === "news"     && <NewsSection adminBar={superAdminBar} news={news} setNews={setNews} isAdmin />}
-            {section === "projects" && <ProjectsSection adminBar={superAdminBar} projects={projects} setProjects={setProjects} isAdmin />}
+            {section === "news"     && <NewsSection adminBar={superAdminBar} news={news} />}
+            {section === "projects" && <ProjectsSection adminBar={superAdminBar} projects={projects} />}
             {section === "tenders"  && <TendersSection user={user} onAddApp={handleAddApp} go={go} isAdmin adminBar={superAdminBar} />}
           </main>
         ) : (
