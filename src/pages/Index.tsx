@@ -126,6 +126,7 @@ const MUT = "#6B7896"; // muted
 // ─── Site Config ──────────────────────────────────────────────────────────────
 interface SiteConfig {
   siteName: string;
+  logoUrl: string;
   phone: string;
   email: string;
   schedule: string;
@@ -133,8 +134,10 @@ interface SiteConfig {
   footerCopyright: string;
   footerDesc: string;
 }
+const DEFAULT_LOGO = "https://cdn.poehali.dev/projects/232d353a-884c-46d3-ba1a-b2a0e421060f/bucket/f7e42cde-bc9f-49ef-9ea5-01f05ae05665.png";
 const DEFAULT_CONFIG: SiteConfig = {
   siteName: "АО УРСТ",
+  logoUrl: DEFAULT_LOGO,
   phone: "+7 (495) 940-07-03",
   email: "info@ao-urst.ru",
   schedule: "Пн–Пт, 9:00–18:00",
@@ -254,8 +257,7 @@ function Header({ active, go, user, onLogin, onLogout, mob, setMob, cfg }: {
         <button onClick={() => go("home")} className="flex items-center gap-3 group">
           <div style={{ borderRadius: 8, boxShadow: "0 4px 12px rgba(0,102,255,.4)", overflow: "hidden", background: "transparent" }}
             className="flex items-center justify-center flex-shrink-0 transition-transform group-hover:scale-105">
-            <img src="https://cdn.poehali.dev/projects/232d353a-884c-46d3-ba1a-b2a0e421060f/bucket/f7e42cde-bc9f-49ef-9ea5-01f05ae05665.png"
-              alt="АО УРСТ" style={{ height: 34, width: "auto", display: "block" }} />
+            <img src={cfg.logoUrl} alt={cfg.siteName} style={{ height: 34, width: "auto", display: "block" }} />
           </div>
           <div className="leading-tight">
             <div style={{ fontFamily: "'Inter',sans-serif", fontWeight: 800, fontSize: ".95rem", color: "#fff", letterSpacing: "-.01em" }}>{cfg.siteName}</div>
@@ -1691,10 +1693,25 @@ function EditUserModal({ adminUser, onClose, onSave }: { adminUser: AdminUser; o
 function SettingsPage({ cfg, onSave, onBack }: { cfg: SiteConfig; onSave: (c: SiteConfig) => void; onBack: () => void }) {
   const [form, setForm] = useState<SiteConfig>({ ...cfg });
   const [saved, setSaved] = useState(false);
+  const [logoPreview, setLogoPreview] = useState<string>(cfg.logoUrl);
 
   const set = (k: keyof SiteConfig, v: string) => { setForm(p => ({ ...p, [k]: v })); setSaved(false); };
 
-  const handle = () => { onSave(form); setSaved(true); };
+  const handle = () => { onSave({ ...form, logoUrl: logoPreview }); setSaved(true); };
+
+  const handleLogo = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    const reader = new FileReader();
+    reader.onload = ev => {
+      const url = ev.target?.result as string;
+      setLogoPreview(url);
+      setSaved(false);
+    };
+    reader.readAsDataURL(file);
+  };
+
+  const resetLogo = () => { setLogoPreview(DEFAULT_LOGO); setSaved(false); };
 
   const Field = ({ label, k, placeholder }: { label: string; k: keyof SiteConfig; placeholder?: string }) => (
     <div>
@@ -1723,8 +1740,36 @@ function SettingsPage({ cfg, onSave, onBack }: { cfg: SiteConfig; onSave: (c: Si
           <div style={{ fontFamily: "'Inter',sans-serif", fontWeight: 700, fontSize: ".88rem", color: INK, marginBottom: 18, letterSpacing: ".04em", textTransform: "uppercase" }}>
             Основное
           </div>
-          <div className="space-y-4">
+          <div className="space-y-5">
             <Field label="Наименование сайта" k="siteName" placeholder="АО УРСТ" />
+            {/* Логотип */}
+            <div>
+              <label className="block text-xs font-semibold mb-3 uppercase tracking-wider" style={{ color: MUT, fontFamily: "'Inter',sans-serif" }}>Логотип</label>
+              <div className="flex items-center gap-5">
+                {/* Preview */}
+                <div className="flex-shrink-0 rounded-xl flex items-center justify-center"
+                  style={{ width: 80, height: 56, background: INK, borderRadius: 10, overflow: "hidden", border: "2px solid #E4E8F0" }}>
+                  <img src={logoPreview} alt="Логотип" style={{ maxHeight: 40, maxWidth: 70, objectFit: "contain" }} />
+                </div>
+                {/* Controls */}
+                <div className="flex flex-col gap-2">
+                  <label className="flex items-center gap-2 px-4 py-2 rounded-xl cursor-pointer transition-all"
+                    style={{ background: B + "12", border: `1.5px solid ${B}30`, color: B, fontSize: ".82rem", fontFamily: "'Inter',sans-serif", fontWeight: 600 }}
+                    onMouseEnter={e => (e.currentTarget as HTMLElement).style.background = B + "22"}
+                    onMouseLeave={e => (e.currentTarget as HTMLElement).style.background = B + "12"}>
+                    <Icon name="Upload" size={14} /> Загрузить логотип
+                    <input type="file" accept="image/png,image/jpeg,image/svg+xml,image/webp" className="hidden" onChange={handleLogo} />
+                  </label>
+                  {logoPreview !== DEFAULT_LOGO && (
+                    <button onClick={resetLogo} className="flex items-center gap-2 px-4 py-2 rounded-xl transition-all"
+                      style={{ background: "#F7F8FC", border: "1.5px solid #E4E8F0", color: MUT, fontSize: ".82rem", fontFamily: "'Inter',sans-serif", fontWeight: 600 }}>
+                      <Icon name="RotateCcw" size={13} /> Сбросить
+                    </button>
+                  )}
+                  <p style={{ fontSize: ".72rem", color: MUT }}>PNG, JPG, SVG, WEBP · рекомендуется 200×60px</p>
+                </div>
+              </div>
+            </div>
           </div>
         </div>
 
@@ -2114,8 +2159,7 @@ function Footer({ go, cfg }: { go: (s: Section) => void; cfg: SiteConfig }) {
         <div>
           <div className="flex items-center gap-3 mb-4">
             <div style={{ borderRadius: 7, overflow: "hidden", boxShadow: "0 4px 10px rgba(0,102,255,.35)" }} className="flex-shrink-0">
-              <img src="https://cdn.poehali.dev/projects/232d353a-884c-46d3-ba1a-b2a0e421060f/bucket/f7e42cde-bc9f-49ef-9ea5-01f05ae05665.png"
-                alt={cfg.siteName} style={{ height: 30, width: "auto", display: "block" }} />
+              <img src={cfg.logoUrl} alt={cfg.siteName} style={{ height: 30, width: "auto", display: "block" }} />
             </div>
             <div>
               <div style={{ fontFamily: "'Inter',sans-serif", fontWeight: 800, fontSize: ".9rem", color: "#fff" }}>{cfg.siteName}</div>
