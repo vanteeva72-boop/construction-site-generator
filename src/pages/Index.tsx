@@ -3,7 +3,7 @@ import Icon from "@/components/ui/icon";
 
 type Section = "home" | "about" | "projects" | "news" | "tenders" | "docs" | "contacts" | "cabinet" | "search";
 type UserRole = "superadmin" | "contentadmin" | "user" | null;
-interface User { name: string; role: UserRole; email: string; phone?: string; company?: string; }
+interface User { name: string; role: UserRole; email: string; phone?: string; company?: string; consentGiven?: boolean; consentDate?: string; }
 
 interface Message {
   id: number;
@@ -141,58 +141,294 @@ const DEFAULT_CONFIG: SiteConfig = {
   footerDesc: "Полный цикл строительства от проектирования до сдачи объекта.",
 };
 
-// ─── Login Modal ──────────────────────────────────────────────────────────────
-function LoginModal({ onClose, onLogin }: { onClose: () => void; onLogin: (u: User) => void }) {
-  const [email, setEmail] = useState("");
-  const [pw, setPw] = useState("");
-  const [err, setErr] = useState("");
-
-  const submit = (e: React.FormEvent) => {
-    e.preventDefault(); setErr("");
-    if (email === "super@ao-urst.ru" && pw === "super123") onLogin({ name: "Иван", role: "superadmin", email, phone: "+7 (495) 000-00-01" });
-    else if (email === "admin@ao-urst.ru" && pw === "admin123") onLogin({ name: "Мария Иванова", role: "contentadmin", email, phone: "+7 (495) 000-00-02" });
-    else if (email === "user@ao-urst.ru" && pw === "user123") onLogin({ name: "Сергей Попов", role: "user", email, phone: "+7 (916) 234-56-78", company: "ООО СтройПроект" });
-    else setErr("Неверный логин или пароль");
-  };
-
+// ─── Privacy Policy Modal ─────────────────────────────────────────────────────
+function PrivacyPolicyModal({ onClose }: { onClose: () => void }) {
   return (
-    <div className="modal-backdrop animate-fade-in" onClick={onClose}>
-      <div className="bg-white w-full max-w-md animate-scale-in"
-        style={{ borderRadius: 16, boxShadow: "0 32px 80px rgba(5,9,26,.25)", overflow: "hidden" }}
-        onClick={e => e.stopPropagation()}>
-        {/* Header */}
-        <div style={{ background: INK }} className="px-8 py-6 flex justify-between items-center">
+    <div className="fixed inset-0 z-[60] flex items-center justify-center p-4" style={{ background: "rgba(5,9,26,.75)", backdropFilter: "blur(6px)" }}
+      onClick={e => { if (e.target === e.currentTarget) onClose(); }}>
+      <div className="bg-white rounded-2xl w-full max-w-2xl shadow-2xl overflow-hidden flex flex-col" style={{ maxHeight: "90vh" }} onClick={e => e.stopPropagation()}>
+        <div style={{ background: INK }} className="px-7 py-5 flex justify-between items-center flex-shrink-0">
           <div>
-            <div style={{ fontFamily: "'Inter',sans-serif", fontWeight: 700, fontSize: "1.05rem" }} className="text-white">Вход в систему</div>
-            <div className="text-sm mt-0.5" style={{ color: "rgba(255,255,255,.5)" }}>АО УРСТ</div>
+            <div style={{ fontFamily: "'Inter',sans-serif", fontWeight: 700, fontSize: "1rem", color: "#fff" }}>Политика конфиденциальности</div>
+            <div style={{ fontSize: ".72rem", color: "rgba(255,255,255,.45)", marginTop: 2 }}>Последнее обновление: 22 апреля 2026 г.</div>
           </div>
-          <button onClick={onClose} className="text-gray-500 hover:text-white transition-colors p-1">
+          <button onClick={onClose} className="p-1.5 rounded-full hover:bg-white/10 transition-all" style={{ color: "rgba(255,255,255,.6)" }}>
             <Icon name="X" size={18} />
           </button>
         </div>
-        {/* Demo hint */}
-        <div className="mx-8 mt-6 px-4 py-3 rounded-lg" style={{ background: "rgba(0,102,255,.06)", border: "1px solid rgba(0,102,255,.15)" }}>
-          <div className="text-xs font-semibold mb-1" style={{ color: B, fontFamily: "'Inter',sans-serif" }}>Демо-доступ</div>
-          <div className="text-xs leading-relaxed" style={{ color: MUT }}>
-            <span style={{ color: INK, fontWeight: 600 }}>Суперадмин:</span> super@ao-urst.ru / super123<br />
-            <span style={{ color: INK, fontWeight: 600 }}>Контент-админ:</span> admin@ao-urst.ru / admin123<br />
-            <span style={{ color: INK, fontWeight: 600 }}>Пользователь:</span> user@ao-urst.ru / user123
-          </div>
+        <div className="overflow-y-auto px-7 py-6 space-y-6 text-sm" style={{ color: "#374151", lineHeight: 1.75, fontFamily: "'Golos Text',sans-serif" }}>
+          <p style={{ color: MUT, fontSize: ".82rem" }}>
+            Настоящая Политика конфиденциальности описывает, как АО «УРСТ» (далее — «Оператор») собирает, использует и хранит персональные данные пользователей сайта в соответствии с Федеральным законом № 152-ФЗ «О персональных данных».
+          </p>
+
+          {[
+            {
+              title: "1. Какие данные мы собираем",
+              content: (
+                <ul className="space-y-1.5 pl-4" style={{ listStyleType: "disc" }}>
+                  <li><strong>Имя и фамилия</strong> — для идентификации пользователя</li>
+                  <li><strong>Адрес электронной почты</strong> — для входа в систему и уведомлений</li>
+                  <li><strong>Номер телефона</strong> — для связи по заявкам и тендерам</li>
+                  <li><strong>Наименование компании и ИНН</strong> — при подаче заявок на тендеры</li>
+                  <li><strong>IP-адрес</strong> — в технических целях обеспечения безопасности</li>
+                </ul>
+              )
+            },
+            {
+              title: "2. Цели обработки данных",
+              content: (
+                <ul className="space-y-1.5 pl-4" style={{ listStyleType: "disc" }}>
+                  <li>Регистрация и аутентификация на сайте</li>
+                  <li>Обработка заявок на участие в тендерах</li>
+                  <li>Направление уведомлений об изменении статуса заявок</li>
+                  <li>Обеспечение обратной связи с пользователем</li>
+                  <li>Улучшение качества работы сервиса</li>
+                </ul>
+              )
+            },
+            {
+              title: "3. Правовые основания",
+              content: (
+                <p>Обработка персональных данных осуществляется на основании <strong>Федерального закона от 27.07.2006 № 152-ФЗ «О персональных данных»</strong>, а также на основании согласия субъекта персональных данных, выраженного при регистрации на сайте или при подаче заявки на тендер.</p>
+              )
+            },
+            {
+              title: "4. Срок хранения данных",
+              content: (
+                <p>Персональные данные хранятся в течение всего срока действия учётной записи, а также в течение <strong>3 лет</strong> после её удаления или отзыва согласия — в целях исполнения требований законодательства. По истечении указанного срока данные уничтожаются или обезличиваются.</p>
+              )
+            },
+            {
+              title: "5. Права пользователя",
+              content: (
+                <ul className="space-y-1.5 pl-4" style={{ listStyleType: "disc" }}>
+                  <li><strong>Право на доступ</strong> — запросить сведения об обрабатываемых данных</li>
+                  <li><strong>Право на исправление</strong> — потребовать уточнения неточных данных</li>
+                  <li><strong>Право на удаление</strong> — потребовать удаления данных (право «быть забытым»)</li>
+                  <li><strong>Право на отзыв согласия</strong> — в любое время через личный кабинет или обратившись к нам</li>
+                  <li><strong>Право на ограничение обработки</strong> — при оспаривании точности данных</li>
+                </ul>
+              )
+            },
+            {
+              title: "6. Контактная информация",
+              content: (
+                <div className="space-y-1">
+                  <p>По всем вопросам, связанным с обработкой персональных данных, обращайтесь:</p>
+                  <p><strong>АО «УРСТ»</strong></p>
+                  <p>Адрес: г. Москва, ул. Климашкина, 22 с 2</p>
+                  <p>Email: <span style={{ color: B }}>info@ao-urst.ru</span></p>
+                  <p>Телефон: +7 (495) 940-07-03</p>
+                </div>
+              )
+            },
+          ].map(s => (
+            <div key={s.title}>
+              <h3 style={{ fontFamily: "'Inter',sans-serif", fontWeight: 700, fontSize: ".9rem", color: INK, marginBottom: 10 }}>{s.title}</h3>
+              <div style={{ color: "#4B5563" }}>{s.content}</div>
+            </div>
+          ))}
         </div>
-        <form onSubmit={submit} className="px-8 py-6 space-y-4">
-          <div>
-            <label className="block text-xs font-semibold mb-1.5 uppercase tracking-wider" style={{ color: MUT, fontFamily: "'Inter',sans-serif" }}>Email</label>
-            <input type="email" className="field" value={email} onChange={e => setEmail(e.target.value)} placeholder="Введите email" required />
-          </div>
-          <div>
-            <label className="block text-xs font-semibold mb-1.5 uppercase tracking-wider" style={{ color: MUT, fontFamily: "'Inter',sans-serif" }}>Пароль</label>
-            <input type="password" className="field" value={pw} onChange={e => setPw(e.target.value)} placeholder="Введите пароль" required />
-          </div>
-          {err && <div className="text-red-500 text-sm flex items-center gap-2"><Icon name="AlertCircle" size={14} />{err}</div>}
-          <button type="submit" className="btn-primary w-full justify-center">Войти</button>
-        </form>
+        <div className="px-7 py-4 flex-shrink-0" style={{ borderTop: "1px solid #E4E8F0" }}>
+          <button onClick={onClose} className="btn-primary w-full justify-center">Закрыть</button>
+        </div>
       </div>
     </div>
+  );
+}
+
+// ─── Login Modal ──────────────────────────────────────────────────────────────
+function LoginModal({ onClose, onLogin }: { onClose: () => void; onLogin: (u: User) => void }) {
+  const [tab, setTab] = useState<"login" | "register">("login");
+
+  // --- Вход ---
+  const [email, setEmail] = useState("");
+  const [pw, setPw] = useState("");
+  const [showPw, setShowPw] = useState(false);
+  const [err, setErr] = useState("");
+
+  // --- Регистрация ---
+  const [rName, setRName] = useState("");
+  const [rEmail, setREmail] = useState("");
+  const [rPhone, setRPhone] = useState("");
+  const [rCompany, setRCompany] = useState("");
+  const [rPw, setRPw] = useState("");
+  const [showRPw, setShowRPw] = useState(false);
+  const [rConsent, setRConsent] = useState(false);
+  const [showPrivacy, setShowPrivacy] = useState(false);
+  const [rErrors, setRErrors] = useState<Record<string, string>>({});
+  const [registered, setRegistered] = useState(false);
+
+  const submitLogin = (e: React.FormEvent) => {
+    e.preventDefault(); setErr("");
+    if (email === "super@ao-urst.ru" && pw === "super123") onLogin({ name: "Иван", role: "superadmin", email, phone: "+7 (495) 000-00-01", consentGiven: true, consentDate: "01.01.2026" });
+    else if (email === "admin@ao-urst.ru" && pw === "admin123") onLogin({ name: "Мария Иванова", role: "contentadmin", email, phone: "+7 (495) 000-00-02", consentGiven: true, consentDate: "01.01.2026" });
+    else if (email === "user@ao-urst.ru" && pw === "user123") onLogin({ name: "Сергей Попов", role: "user", email, phone: "+7 (916) 234-56-78", company: "ООО СтройПроект", consentGiven: true, consentDate: "01.03.2026" });
+    else setErr("Неверный логин или пароль");
+  };
+
+  const submitRegister = (e: React.FormEvent) => {
+    e.preventDefault();
+    const errs: Record<string, string> = {};
+    if (!rName.trim()) errs.name = "Введите имя и фамилию";
+    if (!rEmail.trim() || !rEmail.includes("@")) errs.email = "Введите корректный email";
+    if (!rPw.trim() || rPw.length < 6) errs.pw = "Пароль должен быть не менее 6 символов";
+    if (!rConsent) errs.consent = "Необходимо принять условия Политики конфиденциальности";
+    if (Object.keys(errs).length) { setRErrors(errs); return; }
+    const consentDate = new Date().toLocaleDateString("ru-RU");
+    onLogin({ name: rName.trim(), role: "user", email: rEmail.trim(), phone: rPhone.trim() || undefined, company: rCompany.trim() || undefined, consentGiven: true, consentDate });
+    setRegistered(true);
+  };
+
+  return (
+    <>
+      {showPrivacy && <PrivacyPolicyModal onClose={() => setShowPrivacy(false)} />}
+      <div className="modal-backdrop animate-fade-in" onClick={onClose}>
+        <div className="bg-white w-full max-w-md animate-scale-in"
+          style={{ borderRadius: 16, boxShadow: "0 32px 80px rgba(5,9,26,.25)", overflow: "hidden" }}
+          onClick={e => e.stopPropagation()}>
+
+          {/* Header */}
+          <div style={{ background: INK }} className="px-8 py-5 flex justify-between items-center">
+            <div>
+              <div style={{ fontFamily: "'Inter',sans-serif", fontWeight: 700, fontSize: "1.05rem" }} className="text-white">
+                {tab === "login" ? "Вход в систему" : "Регистрация"}
+              </div>
+              <div className="text-sm mt-0.5" style={{ color: "rgba(255,255,255,.5)" }}>АО УРСТ</div>
+            </div>
+            <button onClick={onClose} className="text-gray-500 hover:text-white transition-colors p-1">
+              <Icon name="X" size={18} />
+            </button>
+          </div>
+
+          {/* Tabs */}
+          <div className="flex" style={{ borderBottom: "1px solid #E4E8F0" }}>
+            {(["login", "register"] as const).map(t => (
+              <button key={t} onClick={() => { setTab(t); setErr(""); setRErrors({}); }}
+                className="flex-1 py-3 text-sm font-semibold transition-all"
+                style={{ fontFamily: "'Inter',sans-serif", color: tab === t ? B : MUT, borderBottom: tab === t ? `2px solid ${B}` : "2px solid transparent", background: "transparent" }}>
+                {t === "login" ? "Вход" : "Регистрация"}
+              </button>
+            ))}
+          </div>
+
+          {/* Login Tab */}
+          {tab === "login" && (
+            <>
+              <div className="mx-8 mt-5 px-4 py-3 rounded-lg" style={{ background: "rgba(0,102,255,.06)", border: "1px solid rgba(0,102,255,.15)" }}>
+                <div className="text-xs font-semibold mb-1" style={{ color: B, fontFamily: "'Inter',sans-serif" }}>Демо-доступ</div>
+                <div className="text-xs leading-relaxed" style={{ color: MUT }}>
+                  <span style={{ color: INK, fontWeight: 600 }}>Суперадмин:</span> super@ao-urst.ru / super123<br />
+                  <span style={{ color: INK, fontWeight: 600 }}>Контент-админ:</span> admin@ao-urst.ru / admin123<br />
+                  <span style={{ color: INK, fontWeight: 600 }}>Пользователь:</span> user@ao-urst.ru / user123
+                </div>
+              </div>
+              <form onSubmit={submitLogin} className="px-8 py-6 space-y-4">
+                <div>
+                  <label className="block text-xs font-semibold mb-1.5 uppercase tracking-wider" style={{ color: MUT, fontFamily: "'Inter',sans-serif" }}>Email</label>
+                  <input type="email" className="field" value={email} onChange={e => setEmail(e.target.value)}
+                    placeholder="Введите email" required style={{ borderColor: err ? "#ef4444" : undefined }} />
+                </div>
+                <div>
+                  <label className="block text-xs font-semibold mb-1.5 uppercase tracking-wider" style={{ color: MUT, fontFamily: "'Inter',sans-serif" }}>Пароль</label>
+                  <div className="relative">
+                    <input type={showPw ? "text" : "password"} className="field pr-10" value={pw}
+                      onChange={e => setPw(e.target.value)} placeholder="Введите пароль" required
+                      style={{ borderColor: err ? "#ef4444" : undefined }} />
+                    <button type="button" onClick={() => setShowPw(v => !v)}
+                      className="absolute right-3 top-1/2 -translate-y-1/2" style={{ color: MUT }}>
+                      <Icon name={showPw ? "EyeOff" : "Eye"} size={16} />
+                    </button>
+                  </div>
+                </div>
+                {err && <div className="text-red-500 text-sm flex items-center gap-2"><Icon name="AlertCircle" size={14} />{err}</div>}
+                <button type="submit" className="btn-primary w-full justify-center">Войти</button>
+              </form>
+            </>
+          )}
+
+          {/* Register Tab */}
+          {tab === "register" && (
+            registered ? (
+              <div className="px-8 py-10 text-center">
+                <div className="w-14 h-14 rounded-full flex items-center justify-center mx-auto mb-4" style={{ background: "#DCFCE7" }}>
+                  <Icon name="CheckCircle" size={28} style={{ color: "#16a34a" }} />
+                </div>
+                <h3 style={{ fontFamily: "'Inter',sans-serif", fontWeight: 700, fontSize: "1rem", color: INK, marginBottom: 8 }}>Регистрация успешна!</h3>
+                <p style={{ fontSize: ".85rem", color: MUT }}>Добро пожаловать в личный кабинет АО УРСТ.</p>
+              </div>
+            ) : (
+              <form onSubmit={submitRegister} className="px-8 py-6 space-y-4">
+                {/* Имя */}
+                <div>
+                  <label className="block text-xs font-semibold mb-1.5 uppercase tracking-wider" style={{ color: MUT, fontFamily: "'Inter',sans-serif" }}>Имя и фамилия *</label>
+                  <input className="field" value={rName} onChange={e => { setRName(e.target.value); setRErrors(p => ({ ...p, name: "" })); }}
+                    placeholder="Иван Иванов" style={{ borderColor: rErrors.name ? "#ef4444" : undefined }} />
+                  {rErrors.name && <p style={{ color: "#ef4444", fontSize: ".75rem", marginTop: 4 }}>{rErrors.name}</p>}
+                </div>
+                {/* Email */}
+                <div>
+                  <label className="block text-xs font-semibold mb-1.5 uppercase tracking-wider" style={{ color: MUT, fontFamily: "'Inter',sans-serif" }}>Email *</label>
+                  <input type="email" className="field" value={rEmail} onChange={e => { setREmail(e.target.value); setRErrors(p => ({ ...p, email: "" })); }}
+                    placeholder="mail@example.com" style={{ borderColor: rErrors.email ? "#ef4444" : undefined }} />
+                  {rErrors.email && <p style={{ color: "#ef4444", fontSize: ".75rem", marginTop: 4 }}>{rErrors.email}</p>}
+                </div>
+                {/* Телефон */}
+                <div>
+                  <label className="block text-xs font-semibold mb-1.5 uppercase tracking-wider" style={{ color: MUT, fontFamily: "'Inter',sans-serif" }}>Телефон</label>
+                  <input className="field" value={rPhone} onChange={e => setRPhone(e.target.value)} placeholder="+7 (999) 000-00-00" />
+                </div>
+                {/* Компания */}
+                <div>
+                  <label className="block text-xs font-semibold mb-1.5 uppercase tracking-wider" style={{ color: MUT, fontFamily: "'Inter',sans-serif" }}>Компания</label>
+                  <input className="field" value={rCompany} onChange={e => setRCompany(e.target.value)} placeholder="ООО Название (необязательно)" />
+                </div>
+                {/* Пароль */}
+                <div>
+                  <label className="block text-xs font-semibold mb-1.5 uppercase tracking-wider" style={{ color: MUT, fontFamily: "'Inter',sans-serif" }}>Пароль *</label>
+                  <div className="relative">
+                    <input type={showRPw ? "text" : "password"} className="field pr-10" value={rPw}
+                      onChange={e => { setRPw(e.target.value); setRErrors(p => ({ ...p, pw: "" })); }}
+                      placeholder="Минимум 6 символов" style={{ borderColor: rErrors.pw ? "#ef4444" : undefined }} />
+                    <button type="button" onClick={() => setShowRPw(v => !v)}
+                      className="absolute right-3 top-1/2 -translate-y-1/2" style={{ color: MUT }}>
+                      <Icon name={showRPw ? "EyeOff" : "Eye"} size={16} />
+                    </button>
+                  </div>
+                  {rErrors.pw && <p style={{ color: "#ef4444", fontSize: ".75rem", marginTop: 4 }}>{rErrors.pw}</p>}
+                </div>
+                {/* Согласие на ПД */}
+                <div className="pt-1">
+                  <label className="flex items-start gap-3 cursor-pointer group">
+                    <div className="flex-shrink-0 mt-0.5">
+                      <div onClick={() => { setRConsent(v => !v); setRErrors(p => ({ ...p, consent: "" })); }}
+                        className="w-5 h-5 rounded flex items-center justify-center transition-all cursor-pointer"
+                        style={{ background: rConsent ? B : "#fff", border: `2px solid ${rErrors.consent ? "#ef4444" : rConsent ? B : "#CBD5E1"}` }}>
+                        {rConsent && <Icon name="Check" size={11} style={{ color: "#fff" }} />}
+                      </div>
+                    </div>
+                    <span style={{ fontSize: ".82rem", color: "#4B5563", lineHeight: 1.5, fontFamily: "'Golos Text',sans-serif" }}>
+                      Я принимаю условия{" "}
+                      <button type="button" onClick={e => { e.stopPropagation(); setShowPrivacy(true); }}
+                        style={{ color: B, fontWeight: 600, textDecoration: "underline" }}>
+                        Политики конфиденциальности
+                      </button>
+                      {" "}и даю согласие на обработку моих персональных данных
+                    </span>
+                  </label>
+                  {rErrors.consent && <p style={{ color: "#ef4444", fontSize: ".75rem", marginTop: 6 }}>{rErrors.consent}</p>}
+                </div>
+                <button type="submit" disabled={!rConsent}
+                  className="btn-primary w-full justify-center"
+                  style={{ opacity: rConsent ? 1 : 0.45, cursor: rConsent ? "pointer" : "not-allowed" }}>
+                  <Icon name="UserPlus" size={14} /> Зарегистрироваться
+                </button>
+              </form>
+            )
+          )}
+        </div>
+      </div>
+    </>
   );
 }
 
@@ -1142,12 +1378,15 @@ function TenderApplyModal({ tender, user, onClose, onSubmit, goToCabinet }: {
   const [inn, setInn] = useState("");
   const [fileName, setFileName] = useState("");
   const [done, setDone] = useState(false);
-  const [errors, setErrors] = useState<{ company?: string; inn?: string }>({});
+  const [tConsent, setTConsent] = useState(!!user.consentGiven);
+  const [showTPrivacy, setShowTPrivacy] = useState(false);
+  const [errors, setErrors] = useState<{ company?: string; inn?: string; consent?: string }>({});
 
   const handleSubmit = () => {
-    const newErrors: { company?: string; inn?: string } = {};
+    const newErrors: { company?: string; inn?: string; consent?: string } = {};
     if (!company.trim()) newErrors.company = "Введите название компании";
     if (!inn.trim()) newErrors.inn = "Введите ИНН";
+    if (!tConsent) newErrors.consent = "Необходимо дать согласие на обработку персональных данных";
     if (Object.keys(newErrors).length > 0) { setErrors(newErrors); return; }
     setErrors({});
     onSubmit({
@@ -1182,6 +1421,8 @@ function TenderApplyModal({ tender, user, onClose, onSubmit, goToCabinet }: {
   );
 
   return (
+    <>
+      {showTPrivacy && <PrivacyPolicyModal onClose={() => setShowTPrivacy(false)} />}
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4 overflow-y-auto" style={{ background: "rgba(10,15,30,.6)", backdropFilter: "blur(4px)" }}
       onClick={e => { if (e.target === e.currentTarget) onClose(); }}>
       <div className="bg-white rounded-2xl w-full max-w-lg shadow-2xl overflow-hidden my-4" onClick={e => e.stopPropagation()}>
@@ -1225,13 +1466,46 @@ function TenderApplyModal({ tender, user, onClose, onSubmit, goToCabinet }: {
                 <div className="flex items-center gap-2"><Icon name="Mail" size={13} style={{ color: MUT }} /> {user.email}</div>
               </div>
             </div>
-            <button onClick={handleSubmit} className="btn-primary w-full justify-center">
+            {/* Согласие на ПД */}
+            {!user.consentGiven && (
+              <div>
+                <label className="flex items-start gap-3 cursor-pointer">
+                  <div className="flex-shrink-0 mt-0.5">
+                    <div onClick={() => { setTConsent(v => !v); setErrors(p => ({ ...p, consent: "" })); }}
+                      className="w-5 h-5 rounded flex items-center justify-center transition-all cursor-pointer"
+                      style={{ background: tConsent ? B : "#fff", border: `2px solid ${errors.consent ? "#ef4444" : tConsent ? B : "#CBD5E1"}` }}>
+                      {tConsent && <Icon name="Check" size={11} style={{ color: "#fff" }} />}
+                    </div>
+                  </div>
+                  <span style={{ fontSize: ".82rem", color: "#4B5563", lineHeight: 1.5, fontFamily: "'Golos Text',sans-serif" }}>
+                    Даю согласие на обработку персональных данных в соответствии с{" "}
+                    <button type="button" onClick={e => { e.stopPropagation(); setShowTPrivacy(true); }}
+                      style={{ color: B, fontWeight: 600, textDecoration: "underline" }}>
+                      Политикой конфиденциальности
+                    </button>
+                  </span>
+                </label>
+                {errors.consent && <p style={{ color: "#ef4444", fontSize: ".75rem", marginTop: 6 }}>{errors.consent}</p>}
+              </div>
+            )}
+            {user.consentGiven && (
+              <div className="flex items-center gap-2 px-3 py-2.5 rounded-xl" style={{ background: "rgba(22,163,74,.06)", border: "1px solid rgba(22,163,74,.2)" }}>
+                <Icon name="ShieldCheck" size={14} style={{ color: "#16a34a" }} />
+                <span style={{ fontSize: ".78rem", color: "#15803d", fontFamily: "'Inter',sans-serif" }}>
+                  Согласие на обработку данных дано {user.consentDate ? `(${user.consentDate})` : ""}
+                </span>
+              </div>
+            )}
+            <button onClick={handleSubmit} disabled={!tConsent}
+              className="btn-primary w-full justify-center"
+              style={{ opacity: tConsent ? 1 : 0.45, cursor: tConsent ? "pointer" : "not-allowed" }}>
               Отправить заявку <Icon name="Send" size={14} />
             </button>
           </div>
         </div>
       </div>
     </div>
+    </>
   );
 }
 
@@ -1907,6 +2181,8 @@ function UserCabinet({ user, setUser, messages, tenderApps, go }: {
   const [phone, setPhone] = useState(user.phone || "");
   const [company, setCompany] = useState(user.company || "");
   const [name, setName] = useState(user.name);
+  const [showPrivacyCab, setShowPrivacyCab] = useState(false);
+  const [revokeConfirm, setRevokeConfirm] = useState(false);
 
   const statusLabel: Record<TenderApp["status"], string> = {
     pending: "На рассмотрении",
@@ -1986,6 +2262,66 @@ function UserCabinet({ user, setUser, messages, tenderApps, go }: {
               ))}
             </div>
           </div>
+        )}
+
+        {/* Блок согласия на ПД */}
+        {tab === "profile" && (
+          <>
+            {showPrivacyCab && <PrivacyPolicyModal onClose={() => setShowPrivacyCab(false)} />}
+            <div className="bg-white rounded-2xl p-6 mt-5" style={{ border: "1px solid #E4E8F0" }}>
+              <div className="flex items-start justify-between gap-4 flex-wrap">
+                <div>
+                  <div className="flex items-center gap-2 mb-1">
+                    <Icon name="ShieldCheck" size={16} style={{ color: user.consentGiven ? "#16a34a" : "#f59e0b" }} />
+                    <h3 style={{ fontFamily: "'Inter',sans-serif", fontWeight: 700, fontSize: ".92rem", color: INK }}>Согласие на обработку персональных данных</h3>
+                  </div>
+                  {user.consentGiven ? (
+                    <p style={{ fontSize: ".8rem", color: MUT }}>
+                      Дано{user.consentDate ? ` ${user.consentDate}` : ""}. Данные обрабатываются согласно{" "}
+                      <button onClick={() => setShowPrivacyCab(true)} style={{ color: B, fontWeight: 600, textDecoration: "underline", fontSize: ".8rem" }}>
+                        Политике конфиденциальности
+                      </button>
+                    </p>
+                  ) : (
+                    <p style={{ fontSize: ".8rem", color: "#d97706" }}>Согласие не дано или отозвано.</p>
+                  )}
+                </div>
+                <div className="flex items-center gap-2">
+                  {user.consentGiven ? (
+                    <button onClick={() => setRevokeConfirm(true)}
+                      className="flex items-center gap-2 px-4 py-2 rounded-xl text-sm font-semibold transition-all"
+                      style={{ background: "rgba(239,68,68,.07)", border: "1.5px solid rgba(239,68,68,.25)", color: "#ef4444", fontFamily: "'Inter',sans-serif" }}>
+                      <Icon name="ShieldOff" size={14} /> Отозвать согласие
+                    </button>
+                  ) : (
+                    <button onClick={() => setUser({ ...user, consentGiven: true, consentDate: new Date().toLocaleDateString("ru-RU") })}
+                      className="flex items-center gap-2 btn-primary text-sm">
+                      <Icon name="ShieldCheck" size={14} /> Дать согласие
+                    </button>
+                  )}
+                </div>
+              </div>
+            </div>
+            {revokeConfirm && (
+              <div className="fixed inset-0 z-50 flex items-center justify-center p-4" style={{ background: "rgba(10,15,30,.6)", backdropFilter: "blur(4px)" }}>
+                <div className="bg-white rounded-2xl w-full max-w-sm p-7 shadow-2xl text-center">
+                  <div className="w-14 h-14 rounded-full flex items-center justify-center mx-auto mb-4" style={{ background: "rgba(239,68,68,.1)" }}>
+                    <Icon name="ShieldOff" size={24} style={{ color: "#ef4444" }} />
+                  </div>
+                  <h3 style={{ fontFamily: "'Inter',sans-serif", fontWeight: 700, fontSize: "1rem", color: INK, marginBottom: 8 }}>Отозвать согласие?</h3>
+                  <p style={{ fontSize: ".84rem", color: MUT, lineHeight: 1.6, marginBottom: 20 }}>
+                    После отзыва вы не сможете подавать заявки на тендеры. Ваши данные будут удалены в течение 30 дней в соответствии с 152-ФЗ.
+                  </p>
+                  <div className="flex gap-3">
+                    <button onClick={() => { setUser({ ...user, consentGiven: false, consentDate: undefined }); setRevokeConfirm(false); }}
+                      className="flex-1 py-2.5 rounded-xl font-semibold text-sm text-white"
+                      style={{ background: "#ef4444", fontFamily: "'Inter',sans-serif" }}>Отозвать</button>
+                    <button onClick={() => setRevokeConfirm(false)} className="flex-1 py-2.5 rounded-xl font-semibold text-sm btn-outline">Отмена</button>
+                  </div>
+                </div>
+              </div>
+            )}
+          </>
         )}
 
         {/* Messages */}
@@ -2069,7 +2405,7 @@ function UserCabinet({ user, setUser, messages, tenderApps, go }: {
 interface AdminUser {
   id: number; name: string; login: string; email: string; phone: string;
   role: "superadmin" | "contentadmin" | "user"; regDate: string;
-  blocked?: boolean;
+  blocked?: boolean; consentGiven?: boolean; consentDate?: string;
 }
 
 const ROLE_LABELS: Record<string, string> = { superadmin: "Суперадмин", contentadmin: "Контент-админ", user: "Пользователь" };
@@ -2490,11 +2826,11 @@ function SettingsPage({ cfg, onSave, onBack }: { cfg: SiteConfig; onSave: (c: Si
 
 // ─── Users Page ───────────────────────────────────────────────────────────────
 const USERS_INITIAL: AdminUser[] = [
-  { id: 1, name: "Иванов Иван Петрович", login: "ivanov", email: "ivanov@ao-urst.ru", phone: "+7 (916) 111-11-11", role: "user", regDate: "10.01.2026" },
-  { id: 2, name: "Петрова Мария Сергеевна", login: "petrova", email: "petrova@ao-urst.ru", phone: "+7 (916) 222-22-22", role: "user", regDate: "15.02.2026" },
-  { id: 3, name: "Сидоров Алексей Юрьевич", login: "sidorov", email: "sidorov@ao-urst.ru", phone: "+7 (916) 333-33-33", role: "contentadmin", regDate: "20.03.2026" },
-  { id: 4, name: "Козлова Анна Дмитриевна", login: "kozlova", email: "kozlova@ao-urst.ru", phone: "+7 (916) 444-44-44", role: "user", regDate: "01.04.2026" },
-  { id: 5, name: "Новиков Дмитрий Игоревич", login: "novikov", email: "novikov@ao-urst.ru", phone: "+7 (916) 555-55-55", role: "user", regDate: "05.04.2026", blocked: true },
+  { id: 1, name: "Иванов Иван Петрович", login: "ivanov", email: "ivanov@ao-urst.ru", phone: "+7 (916) 111-11-11", role: "user", regDate: "10.01.2026", consentGiven: true, consentDate: "10.01.2026" },
+  { id: 2, name: "Петрова Мария Сергеевна", login: "petrova", email: "petrova@ao-urst.ru", phone: "+7 (916) 222-22-22", role: "user", regDate: "15.02.2026", consentGiven: true, consentDate: "15.02.2026" },
+  { id: 3, name: "Сидоров Алексей Юрьевич", login: "sidorov", email: "sidorov@ao-urst.ru", phone: "+7 (916) 333-33-33", role: "contentadmin", regDate: "20.03.2026", consentGiven: true, consentDate: "20.03.2026" },
+  { id: 4, name: "Козлова Анна Дмитриевна", login: "kozlova", email: "kozlova@ao-urst.ru", phone: "+7 (916) 444-44-44", role: "user", regDate: "01.04.2026", consentGiven: false },
+  { id: 5, name: "Новиков Дмитрий Игоревич", login: "novikov", email: "novikov@ao-urst.ru", phone: "+7 (916) 555-55-55", role: "user", regDate: "05.04.2026", blocked: true, consentGiven: false },
 ];
 
 function UsersPage({ onBack, users, setUsers }: { onBack: () => void; users: AdminUser[]; setUsers: React.Dispatch<React.SetStateAction<AdminUser[]>> }) {
@@ -2529,13 +2865,13 @@ function UsersPage({ onBack, users, setUsers }: { onBack: () => void; users: Adm
         <div className="bg-white rounded-2xl overflow-hidden" style={{ border: "1px solid #E4E8F0" }}>
           {/* Table header */}
           <div className="hidden md:grid px-5 py-3 gap-4 text-xs font-bold uppercase tracking-wider"
-            style={{ gridTemplateColumns: "2fr 1.2fr 1.5fr 1.2fr 1fr 0.8fr auto", color: MUT, fontFamily: "'Inter',sans-serif", background: "#F7F8FC", borderBottom: "1px solid #E4E8F0" }}>
-            <span>ФИО</span><span>Логин</span><span>Email</span><span>Телефон</span><span>Дата регистрации</span><span>Роль</span><span>Действия</span>
+            style={{ gridTemplateColumns: "2fr 1.2fr 1.5fr 1.2fr 1fr 0.8fr 0.9fr auto", color: MUT, fontFamily: "'Inter',sans-serif", background: "#F7F8FC", borderBottom: "1px solid #E4E8F0" }}>
+            <span>ФИО</span><span>Логин</span><span>Email</span><span>Телефон</span><span>Дата регистрации</span><span>Роль</span><span>Согласие ПД</span><span>Действия</span>
           </div>
 
           {users.map((u, i) => (
             <div key={u.id} className="px-5 py-4 flex flex-col md:grid gap-4 items-center"
-              style={{ gridTemplateColumns: "2fr 1.2fr 1.5fr 1.2fr 1fr 0.8fr auto", borderBottom: i < users.length - 1 ? "1px solid #E4E8F0" : "none", opacity: u.blocked ? 0.6 : 1 }}>
+              style={{ gridTemplateColumns: "2fr 1.2fr 1.5fr 1.2fr 1fr 0.8fr 0.9fr auto", borderBottom: i < users.length - 1 ? "1px solid #E4E8F0" : "none", opacity: u.blocked ? 0.6 : 1 }}>
               {/* ФИО */}
               <div className="flex items-center gap-3 min-w-0">
                 <div className="w-8 h-8 rounded-lg flex items-center justify-center text-white text-xs font-bold flex-shrink-0"
@@ -2562,6 +2898,21 @@ function UsersPage({ onBack, users, setUsers }: { onBack: () => void; users: Adm
                   <option value="contentadmin">Контент-админ</option>
                   <option value="superadmin">Суперадмин</option>
                 </select>
+              </div>
+              {/* Согласие ПД */}
+              <div>
+                {u.consentGiven ? (
+                  <div className="flex flex-col gap-0.5">
+                    <span className="flex items-center gap-1 text-xs font-semibold" style={{ color: "#16a34a", fontFamily: "'Inter',sans-serif" }}>
+                      <Icon name="ShieldCheck" size={12} /> Дано
+                    </span>
+                    {u.consentDate && <span style={{ fontSize: ".68rem", color: MUT }}>{u.consentDate}</span>}
+                  </div>
+                ) : (
+                  <span className="flex items-center gap-1 text-xs font-semibold" style={{ color: "#ef4444", fontFamily: "'Inter',sans-serif" }}>
+                    <Icon name="ShieldOff" size={12} /> Не дано
+                  </span>
+                )}
               </div>
               {/* Действия */}
               <div className="flex items-center gap-1">
