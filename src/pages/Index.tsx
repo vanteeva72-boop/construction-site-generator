@@ -52,11 +52,15 @@ const TENDERS_INITIAL = [
   { id: 4, title: "Проектирование объектов инфраструктуры", deadline: "20 апреля 2026", budget: "от 8 млн ₽", type: "Запрос котировок", status: "closed" },
   { id: 5, title: "Поставка строительных материалов 2026", deadline: "1 апреля 2026", budget: "от 62 млн ₽", type: "Открытый конкурс", status: "closed" },
 ];
-const DOCS_SECTIONS = [
+interface DocItem { id: number; name: string; type: string; size: string; }
+interface DocSubSection { id: string; title: string; docs: DocItem[]; }
+interface DocSection {
+  id: string; title: string; icon: string;
+  docs?: DocItem[]; subsections?: DocSubSection[];
+}
+const DOCS_INITIAL: DocSection[] = [
   {
-    id: "contractors",
-    title: "Подрядным организациям",
-    icon: "HardHat",
+    id: "contractors", title: "Подрядным организациям", icon: "HardHat",
     docs: [
       { id: 1, name: "Регламент ИД", type: "PDF", size: "1.2 МБ" },
       { id: 2, name: "Соглашение КОТПБиООС", type: "PDF", size: "0.9 МБ" },
@@ -65,17 +69,11 @@ const DOCS_SECTIONS = [
     ],
   },
   {
-    id: "pricelist",
-    title: "Прайс-лист на услуги техники с экипажем и оборудования",
-    icon: "Receipt",
-    docs: [
-      { id: 5, name: "Прайс-лист", type: "PDF", size: "0.6 МБ" },
-    ],
+    id: "pricelist", title: "Прайс-лист на услуги техники с экипажем и оборудования", icon: "Receipt",
+    docs: [{ id: 5, name: "Прайс-лист", type: "PDF", size: "0.6 МБ" }],
   },
   {
-    id: "certs",
-    title: "Сертификаты соответствия ИСМ",
-    icon: "BadgeCheck",
+    id: "certs", title: "Сертификаты соответствия ИСМ", icon: "BadgeCheck",
     docs: [
       { id: 6, name: "ISO 9001:2015", type: "PDF", size: "0.8 МБ" },
       { id: 7, name: "ISO 14001:2015", type: "PDF", size: "0.8 МБ" },
@@ -83,21 +81,14 @@ const DOCS_SECTIONS = [
     ],
   },
   {
-    id: "personaldata",
-    title: "Положение об обработке и защите персональных данных работников",
-    icon: "ShieldCheck",
-    docs: [
-      { id: 9, name: "Защита персональных данных", type: "PDF", size: "1.1 МБ" },
-    ],
+    id: "personaldata", title: "Положение об обработке и защите персональных данных работников", icon: "ShieldCheck",
+    docs: [{ id: 9, name: "Защита персональных данных", type: "PDF", size: "1.1 МБ" }],
   },
   {
-    id: "labor",
-    title: "Охрана труда",
-    icon: "HardHat",
+    id: "labor", title: "Охрана труда", icon: "HardHat",
     subsections: [
       {
-        id: "soут",
-        title: "СОУТ — Специальная Оценка Условий Труда",
+        id: "soут", title: "СОУТ — Специальная Оценка Условий Труда",
         docs: [
           { id: 10, name: "Перечень мероприятий 17.03.2025", type: "PDF", size: "0.9 МБ" },
           { id: 11, name: "Сводная ведомость 17.03.2025", type: "PDF", size: "1.3 МБ" },
@@ -106,8 +97,7 @@ const DOCS_SECTIONS = [
         ],
       },
       {
-        id: "policies",
-        title: 'Политики АО "Мосинжпроект" применяемые в АО "УРСТ"',
+        id: "policies", title: 'Политики АО "Мосинжпроект" применяемые в АО "УРСТ"',
         docs: [
           { id: 14, name: "Политика в области употребления алкоголя, наркотических и психотропных веществ", type: "PDF", size: "0.5 МБ" },
           { id: 15, name: "Политика о вмешательстве в опасные ситуации. Право на приостановку (прекращение) работ", type: "PDF", size: "0.6 МБ" },
@@ -115,15 +105,14 @@ const DOCS_SECTIONS = [
         ],
       },
       {
-        id: "ecology",
-        title: "Охрана окружающей среды / Экологические аспекты",
-        docs: [
-          { id: 17, name: "Реестр экологических аспектов", type: "PDF", size: "1.0 МБ" },
-        ],
+        id: "ecology", title: "Охрана окружающей среды / Экологические аспекты",
+        docs: [{ id: 17, name: "Реестр экологических аспектов", type: "PDF", size: "1.0 МБ" }],
       },
     ],
   },
 ];
+// обратная совместимость для мест где используется DOCS_SECTIONS
+const DOCS_SECTIONS = DOCS_INITIAL;
 
 const B = "#0066FF";   // accent blue
 const INK = "#0A0F1E"; // dark text
@@ -1454,52 +1443,156 @@ function DocRow({ doc }: { doc: { id: number; name: string; type: string; size: 
   );
 }
 
-function DocsSection({ user }: { user: User | null }) {
+function EditDocNameModal({ doc, onClose, onSave }: { doc: DocItem; onClose: () => void; onSave: (name: string) => void }) {
+  const [name, setName] = useState(doc.name);
+  return (
+    <div className="fixed inset-0 z-50 flex items-center justify-center p-4" style={{ background: "rgba(10,15,30,.6)", backdropFilter: "blur(4px)" }}
+      onClick={e => { if (e.target === e.currentTarget) onClose(); }}>
+      <div className="bg-white rounded-2xl w-full max-w-md shadow-2xl overflow-hidden" onClick={e => e.stopPropagation()}>
+        <div style={{ height: 4, background: B }} />
+        <div className="p-7">
+          <div className="flex items-center justify-between mb-5">
+            <h2 style={{ fontFamily: "'Inter',sans-serif", fontWeight: 700, fontSize: "1rem", color: INK }}>Переименовать документ</h2>
+            <button onClick={onClose} className="p-1.5 rounded-full hover:bg-gray-100" style={{ color: MUT }}><Icon name="X" size={16} /></button>
+          </div>
+          <input className="field mb-5" value={name} onChange={e => setName(e.target.value)} placeholder="Название документа" />
+          <div className="flex gap-2">
+            <button onClick={() => { if (name.trim()) onSave(name.trim()); }} className="btn-primary flex-1 justify-center">Сохранить</button>
+            <button onClick={onClose} className="btn-outline px-5">Отмена</button>
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+function DocsSection({ user, adminBar, docSections: docSectionsProp, setDocSections, isAdmin }: {
+  user: User | null; adminBar?: React.ReactNode;
+  docSections?: DocSection[]; setDocSections?: React.Dispatch<React.SetStateAction<DocSection[]>>;
+  isAdmin?: boolean;
+}) {
+  const sections = docSectionsProp ?? DOCS_INITIAL;
   const [open, setOpen] = useState<Record<string, boolean>>({ contractors: true });
   const [openSub, setOpenSub] = useState<Record<string, boolean>>({});
+  const [addModal, setAddModal] = useState(false);
+  const [editDoc, setEditDoc] = useState<{ sectionId: string; doc: DocItem } | null>(null);
+  const [deleteDoc, setDeleteDoc] = useState<{ sectionId: string; docId: number } | null>(null);
+  const [deleteSection, setDeleteSection] = useState<string | null>(null);
+  const [toast, setToast] = useState("");
 
   const toggle = (id: string) => setOpen(p => ({ ...p, [id]: !p[id] }));
   const toggleSub = (id: string) => setOpenSub(p => ({ ...p, [id]: !p[id] }));
 
+  const handleAddDoc = (sectionId: string, sectionTitle: string, docName: string, fileName: string) => {
+    const newDoc: DocItem = { id: Date.now(), name: docName, type: "PDF", size: fileName ? "—" : "—" };
+    setDocSections?.(prev => {
+      const existing = prev.find(s => s.id === sectionId);
+      if (existing) return prev.map(s => s.id === sectionId ? { ...s, docs: [...(s.docs || []), newDoc] } : s);
+      return [...prev, { id: sectionId, title: sectionTitle, icon: "FileText", docs: [newDoc] }];
+    });
+    setToast("Документ добавлен!");
+  };
+
+  const handleEditDoc = (sectionId: string, doc: DocItem, newName: string) => {
+    setDocSections?.(prev => prev.map(s => s.id === sectionId ? { ...s, docs: (s.docs || []).map(d => d.id === doc.id ? { ...d, name: newName } : d) } : s));
+    setEditDoc(null);
+    setToast("Документ обновлён!");
+  };
+
+  const handleDeleteDoc = (sectionId: string, docId: number) => {
+    setDocSections?.(prev => prev.map(s => s.id === sectionId ? { ...s, docs: (s.docs || []).filter(d => d.id !== docId) } : s));
+    setDeleteDoc(null);
+    setToast("Документ удалён!");
+  };
+
+  const handleDeleteSection = (sectionId: string) => {
+    setDocSections?.(prev => prev.filter(s => s.id !== sectionId));
+    setDeleteSection(null);
+    setToast("Раздел удалён!");
+  };
+
+  const renderDocRow = (doc: DocItem, sectionId: string) => (
+    <div key={doc.id} className="flex items-center justify-between py-3 px-4 rounded-xl transition-all group"
+      style={{ border: "1px solid #E4E8F0" }}
+      onMouseEnter={e => { (e.currentTarget as HTMLElement).style.borderColor = "rgba(0,102,255,.3)"; (e.currentTarget as HTMLElement).style.background = "#F8FBFF"; }}
+      onMouseLeave={e => { (e.currentTarget as HTMLElement).style.borderColor = "#E4E8F0"; (e.currentTarget as HTMLElement).style.background = ""; }}>
+      <div className="flex items-center gap-3 flex-1 min-w-0">
+        <div className="w-9 h-9 rounded-lg flex items-center justify-center text-xs font-bold flex-shrink-0"
+          style={{ fontFamily: "'Inter',sans-serif", background: "rgba(239,68,68,.08)", color: "#ef4444" }}>PDF</div>
+        <div className="min-w-0">
+          <div style={{ fontWeight: 600, fontSize: ".85rem", color: INK, fontFamily: "'Inter',sans-serif", lineHeight: 1.4 }} className="truncate">{doc.name}</div>
+          <div style={{ fontSize: ".72rem", color: MUT, marginTop: 2 }}>{doc.size}</div>
+        </div>
+      </div>
+      <div className="flex items-center gap-1 ml-3 flex-shrink-0">
+        {!isAdmin && (
+          <button className="flex items-center gap-1.5" style={{ color: B, fontSize: ".8rem", fontWeight: 600, fontFamily: "'Inter',sans-serif" }}>
+            <Icon name="Download" size={13} /> Скачать
+          </button>
+        )}
+        {isAdmin && (
+          <>
+            <button onClick={() => setEditDoc({ sectionId, doc })} className="p-1.5 rounded-lg hover:bg-blue-50 transition-colors" title="Переименовать">
+              <Icon name="Pencil" size={13} style={{ color: B }} />
+            </button>
+            <button onClick={() => setDeleteDoc({ sectionId, docId: doc.id })} className="p-1.5 rounded-lg hover:bg-red-50 transition-colors" title="Удалить">
+              <Icon name="Trash2" size={13} style={{ color: "#ef4444" }} />
+            </button>
+          </>
+        )}
+      </div>
+    </div>
+  );
+
   return (
     <div>
-      <PageHeader label="Документы" title="Документация" sub="Нормативные, технические и корпоративные документы компании." />
+      {toast && <Toast message={toast} onClose={() => setToast("")} />}
+      {adminBar}
+      <PageHeader label="Документы" title="Документация" sub="Нормативные, технические и корпоративные документы компании." compact={!!adminBar} />
       <div className="py-16 bg-white">
         <div className="max-w-4xl mx-auto px-6">
-          {!user && (
-            <div className="rounded-2xl p-4 mb-8 flex items-center gap-3"
-              style={{ background: "#F7F8FC", border: "1px solid #E4E8F0" }}>
+          {isAdmin && (
+            <div className="flex justify-end mb-6">
+              <button onClick={() => setAddModal(true)} className="btn-primary text-sm"><Icon name="Plus" size={14} /> Добавить документ</button>
+            </div>
+          )}
+          {!user && !isAdmin && (
+            <div className="rounded-2xl p-4 mb-8 flex items-center gap-3" style={{ background: "#F7F8FC", border: "1px solid #E4E8F0" }}>
               <Icon name="Lock" size={16} style={{ color: MUT }} />
               <span style={{ fontSize: ".85rem", color: MUT }}>Некоторые документы доступны только авторизованным пользователям.</span>
             </div>
           )}
           <div className="space-y-3">
-            {DOCS_SECTIONS.map(section => (
+            {sections.map(section => (
               <div key={section.id} className="rounded-2xl overflow-hidden" style={{ border: "1px solid #E4E8F0" }}>
-                {/* Section header */}
-                <button
-                  onClick={() => toggle(section.id)}
+                <button onClick={() => toggle(section.id)}
                   className="w-full flex items-center justify-between p-5 text-left transition-all"
                   style={{ background: open[section.id] ? "#F0F7FF" : "#fff" }}>
-                  <div className="flex items-center gap-3">
+                  <div className="flex items-center gap-3 flex-1 min-w-0">
                     <div className="w-9 h-9 rounded-xl flex items-center justify-center flex-shrink-0"
                       style={{ background: open[section.id] ? B : "#F7F8FC" }}>
                       <Icon name={section.icon as "HardHat"} size={16} style={{ color: open[section.id] ? "#fff" : MUT }} />
                     </div>
                     <span style={{ fontFamily: "'Inter',sans-serif", fontWeight: 700, fontSize: ".92rem", color: INK, lineHeight: 1.4 }}>{section.title}</span>
                   </div>
-                  <Icon name={open[section.id] ? "ChevronUp" : "ChevronDown"} size={18} style={{ color: MUT, flexShrink: 0, marginLeft: 12 }} />
+                  <div className="flex items-center gap-1 ml-3 flex-shrink-0">
+                    {isAdmin && (
+                      <button onClick={e => { e.stopPropagation(); setDeleteSection(section.id); }}
+                        className="p-1.5 rounded-lg hover:bg-red-50 transition-colors" title="Удалить раздел">
+                        <Icon name="Trash2" size={13} style={{ color: "#ef4444" }} />
+                      </button>
+                    )}
+                    <Icon name={open[section.id] ? "ChevronUp" : "ChevronDown"} size={18} style={{ color: MUT, marginLeft: 4 }} />
+                  </div>
                 </button>
 
-                {/* Section body */}
                 {open[section.id] && (
                   <div className="px-5 pb-5" style={{ borderTop: "1px solid #E4E8F0" }}>
-                    {"subsections" in section ? (
+                    {section.subsections ? (
                       <div className="pt-4 space-y-3">
-                        {section.subsections!.map(sub => (
+                        {section.subsections.map(sub => (
                           <div key={sub.id} className="rounded-xl overflow-hidden" style={{ border: "1px solid #E4E8F0" }}>
-                            <button
-                              onClick={() => toggleSub(sub.id)}
+                            <button onClick={() => toggleSub(sub.id)}
                               className="w-full flex items-center justify-between px-4 py-3 text-left transition-all"
                               style={{ background: openSub[sub.id] ? "#F7F8FC" : "#fff" }}>
                               <span style={{ fontFamily: "'Inter',sans-serif", fontWeight: 600, fontSize: ".85rem", color: INK }}>{sub.title}</span>
@@ -1507,7 +1600,7 @@ function DocsSection({ user }: { user: User | null }) {
                             </button>
                             {openSub[sub.id] && (
                               <div className="px-4 pb-4 space-y-2" style={{ borderTop: "1px solid #E4E8F0", paddingTop: 12 }}>
-                                {sub.docs.map(doc => <DocRow key={doc.id} doc={doc} />)}
+                                {sub.docs.map(doc => renderDocRow(doc, section.id))}
                               </div>
                             )}
                           </div>
@@ -1515,7 +1608,7 @@ function DocsSection({ user }: { user: User | null }) {
                       </div>
                     ) : (
                       <div className="pt-4 space-y-2">
-                        {section.docs!.map(doc => <DocRow key={doc.id} doc={doc} />)}
+                        {(section.docs || []).map(doc => renderDocRow(doc, section.id))}
                       </div>
                     )}
                   </div>
@@ -1525,6 +1618,48 @@ function DocsSection({ user }: { user: User | null }) {
           </div>
         </div>
       </div>
+
+      {addModal && <AddDocModal onClose={() => setAddModal(false)} docSections={sections} onAdd={handleAddDoc} />}
+
+      {editDoc && (
+        <EditDocNameModal
+          doc={editDoc.doc}
+          onClose={() => setEditDoc(null)}
+          onSave={name => handleEditDoc(editDoc.sectionId, editDoc.doc, name)}
+        />
+      )}
+
+      {deleteDoc && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4" style={{ background: "rgba(10,15,30,.6)", backdropFilter: "blur(4px)" }}>
+          <div className="bg-white rounded-2xl w-full max-w-sm p-7 shadow-2xl text-center">
+            <div className="w-14 h-14 rounded-full flex items-center justify-center mx-auto mb-4" style={{ background: "rgba(239,68,68,.1)" }}>
+              <Icon name="Trash2" size={24} style={{ color: "#ef4444" }} />
+            </div>
+            <h3 style={{ fontFamily: "'Inter',sans-serif", fontWeight: 700, fontSize: "1rem", color: INK, marginBottom: 8 }}>Удалить документ?</h3>
+            <p style={{ fontSize: ".85rem", color: MUT, marginBottom: 20 }}>Это действие нельзя отменить.</p>
+            <div className="flex gap-3">
+              <button onClick={() => handleDeleteDoc(deleteDoc.sectionId, deleteDoc.docId)} className="flex-1 py-2.5 rounded-xl font-semibold text-sm text-white flex items-center justify-center" style={{ background: "#ef4444", fontFamily: "'Inter',sans-serif" }}>Удалить</button>
+              <button onClick={() => setDeleteDoc(null)} className="flex-1 py-2.5 rounded-xl font-semibold text-sm btn-outline flex items-center justify-center">Отмена</button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {deleteSection && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4" style={{ background: "rgba(10,15,30,.6)", backdropFilter: "blur(4px)" }}>
+          <div className="bg-white rounded-2xl w-full max-w-sm p-7 shadow-2xl text-center">
+            <div className="w-14 h-14 rounded-full flex items-center justify-center mx-auto mb-4" style={{ background: "rgba(239,68,68,.1)" }}>
+              <Icon name="FolderX" size={24} style={{ color: "#ef4444" }} />
+            </div>
+            <h3 style={{ fontFamily: "'Inter',sans-serif", fontWeight: 700, fontSize: "1rem", color: INK, marginBottom: 8 }}>Удалить раздел?</h3>
+            <p style={{ fontSize: ".85rem", color: MUT, marginBottom: 20 }}>Все документы в разделе будут удалены. Это действие нельзя отменить.</p>
+            <div className="flex gap-3">
+              <button onClick={() => handleDeleteSection(deleteSection)} className="flex-1 py-2.5 rounded-xl font-semibold text-sm text-white flex items-center justify-center" style={{ background: "#ef4444", fontFamily: "'Inter',sans-serif" }}>Удалить</button>
+              <button onClick={() => setDeleteSection(null)} className="flex-1 py-2.5 rounded-xl font-semibold text-sm btn-outline flex items-center justify-center">Отмена</button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
@@ -2043,10 +2178,15 @@ function AddUserModal({ onClose, onAdd }: { onClose: () => void; onAdd: (u: Admi
   );
 }
 
-function AddDocModal({ onClose, onAdd }: { onClose: () => void; onAdd?: () => void }) {
-  const existingSections = DOCS_SECTIONS.map(s => s.title);
+function AddDocModal({ onClose, onAdd, docSections: docSectionsProp }: {
+  onClose: () => void;
+  onAdd?: (sectionId: string, sectionTitle: string, docName: string, fileName: string) => void;
+  docSections?: DocSection[];
+}) {
+  const sections = docSectionsProp ?? DOCS_INITIAL;
+  const existingSections = sections.filter(s => !s.subsections).map(s => ({ id: s.id, title: s.title }));
   const [useExisting, setUseExisting] = useState(true);
-  const [selectedSection, setSelectedSection] = useState(existingSections[0]);
+  const [selectedSectionId, setSelectedSectionId] = useState(existingSections[0]?.id || "");
   const [newSection, setNewSection] = useState("");
   const [docName, setDocName] = useState("");
   const [fileName, setFileName] = useState("");
@@ -2058,7 +2198,9 @@ function AddDocModal({ onClose, onAdd }: { onClose: () => void; onAdd?: () => vo
     if (!useExisting && !newSection.trim()) errs.newSection = "Введите название нового раздела";
     if (!fileName) errs.file = "Прикрепите файл";
     if (Object.keys(errs).length) { setErrors(errs); return; }
-    onAdd?.();
+    const sectionId = useExisting ? selectedSectionId : newSection.toLowerCase().replace(/\s+/g, "-") + "-" + Date.now();
+    const sectionTitle = useExisting ? (existingSections.find(s => s.id === selectedSectionId)?.title || selectedSectionId) : newSection;
+    onAdd?.(sectionId, sectionTitle, docName, fileName);
     onClose();
   };
 
@@ -2089,8 +2231,8 @@ function AddDocModal({ onClose, onAdd }: { onClose: () => void; onAdd?: () => vo
                 </button>
               </div>
               {useExisting ? (
-                <select className="field" value={selectedSection} onChange={e => setSelectedSection(e.target.value)}>
-                  {existingSections.map(s => <option key={s}>{s}</option>)}
+                <select className="field" value={selectedSectionId} onChange={e => setSelectedSectionId(e.target.value)}>
+                  {existingSections.map(s => <option key={s.id} value={s.id}>{s.title}</option>)}
                 </select>
               ) : (
                 <>
@@ -2563,13 +2705,14 @@ function AdminCabinet({ user, setUser, onBack, onLogout, roleLabel }: {
 }
 
 // ─── Superadmin Dashboard ─────────────────────────────────────────────────────
-function SuperAdminDashboard({ user, setUser, onLogout, go, cfg, onCfgSave, initialView, onViewChange, sharedNews, setSharedNews, sharedProjects, sharedTenders, setSharedTenders }: {
+function SuperAdminDashboard({ user, setUser, onLogout, go, cfg, onCfgSave, initialView, onViewChange, sharedNews, setSharedNews, sharedProjects, sharedTenders, setSharedTenders, sharedDocs, setSharedDocs }: {
   user: User; setUser: (u: User) => void; onLogout: () => void; go: (s: Section) => void;
   cfg: SiteConfig; onCfgSave: (c: SiteConfig) => void;
   initialView?: "dashboard" | "cabinet"; onViewChange?: () => void;
   sharedNews?: NewsItem[]; setSharedNews?: React.Dispatch<React.SetStateAction<NewsItem[]>>;
   sharedProjects?: ProjectItem[];
   sharedTenders?: TenderItem[]; setSharedTenders?: React.Dispatch<React.SetStateAction<TenderItem[]>>;
+  sharedDocs?: DocSection[]; setSharedDocs?: React.Dispatch<React.SetStateAction<DocSection[]>>;
 }) {
   const [view, setView] = useState<"dashboard" | "users" | "settings" | "cabinet">(initialView || "dashboard");
   const [users, setUsers] = useState<AdminUser[]>(USERS_INITIAL);
@@ -2596,11 +2739,18 @@ function SuperAdminDashboard({ user, setUser, onLogout, go, cfg, onCfgSave, init
   const draftNews = news.filter(n => n.draft);
 
   const activeTendersCount = (sharedTenders ?? TENDERS_INITIAL).filter(t => t.status === "active").length;
+  const docsArr = sharedDocs ?? DOCS_INITIAL;
+  const totalDocs = docsArr.reduce((acc, s) => {
+    if (s.docs) return acc + s.docs.length;
+    if (s.subsections) return acc + s.subsections.reduce((a, sub) => a + sub.docs.length, 0);
+    return acc;
+  }, 0);
   const statCards = [
     { icon: "Newspaper", label: "Новости", value: publishedNews.length, sub: `Черновиков: ${draftNews.length}`, color: "#0066FF", onClick: () => go("news") },
     { icon: "HardHat", label: "Проекты", value: (sharedProjects ?? PROJECTS_INITIAL).length, sub: `Всего: ${(sharedProjects ?? PROJECTS_INITIAL).length}`, color: "#8b5cf6", onClick: () => go("projects") },
     { icon: "FileText", label: "Тендеры", value: activeTendersCount, sub: `Активных: ${activeTendersCount}`, color: "#f59e0b", onClick: () => go("tenders") },
     { icon: "Users", label: "Пользователи", value: users.length, sub: `Всего: ${users.length}`, color: "#10b981", onClick: () => setView("users") },
+    { icon: "BookOpen", label: "Документы", value: totalDocs, sub: `Разделов: ${docsArr.length}`, color: "#6366f1", onClick: () => go("docs") },
   ];
 
   const recentNews = [...news]
@@ -2653,7 +2803,7 @@ function SuperAdminDashboard({ user, setUser, onLogout, go, cfg, onCfgSave, init
 
       <div className="max-w-7xl mx-auto px-6 py-8 space-y-6">
         {/* Stat cards */}
-        <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+        <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-4">
           {statCards.map((s, i) => (
             <button key={i} onClick={s.onClick}
               className="bg-white rounded-2xl p-5 text-left transition-all hover:shadow-md"
@@ -2723,7 +2873,15 @@ function SuperAdminDashboard({ user, setUser, onLogout, go, cfg, onCfgSave, init
 
       {addTender && <AddTenderModal onClose={() => setAddTender(false)} onAdd={t => { setSharedTenders?.(p => [...p, { id: Date.now(), title: t.title, deadline: t.deadline, budget: t.budget, type: "Открытый конкурс", status: "active" }]); setToast("Тендер успешно создан!"); }} />}
       {addUser && <AddUserModal onClose={() => setAddUser(false)} onAdd={u => { setUsers(p => [...p, u]); setToast("Пользователь добавлен!"); }} />}
-      {addDoc && <AddDocModal onClose={() => setAddDoc(false)} onAdd={() => setToast("Документ опубликован!")} />}
+      {addDoc && <AddDocModal onClose={() => setAddDoc(false)} docSections={docsArr} onAdd={(sectionId, sectionTitle, docName, fileName) => {
+        setSharedDocs?.(prev => {
+          const existing = prev.find(s => s.id === sectionId);
+          const newDoc: DocItem = { id: Date.now(), name: docName, type: "PDF", size: fileName ? "—" : "—" };
+          if (existing) return prev.map(s => s.id === sectionId ? { ...s, docs: [...(s.docs || []), newDoc] } : s);
+          return [...prev, { id: sectionId, title: sectionTitle, icon: "FileText", docs: [newDoc] }];
+        });
+        setToast("Документ опубликован!");
+      }} />}
       {toast && <Toast message={toast} onClose={() => setToast("")} />}
     </div>
   );
@@ -2913,6 +3071,7 @@ export default function Index() {
   const [news, setNews] = useState<NewsItem[]>(NEWS_INITIAL);
   const [projects, setProjects] = useState<ProjectItem[]>(PROJECTS_INITIAL);
   const [tenders, setTenders] = useState<TenderItem[]>(TENDERS_INITIAL);
+  const [docSections, setDocSections] = useState<DocSection[]>(DOCS_INITIAL);
   const [messages, setMessages] = useState<Message[]>([
     { id: 1, date: "15 апреля 2026", subject: "Строительный проект", text: "Добрый день! Интересует возможность сотрудничества по строительству объекта в Подмосковье. Прошу предоставить информацию о ваших услугах.", reply: "Добрый день! Спасибо за обращение. Мы готовы рассмотреть ваш проект. Наш менеджер свяжется с вами в течение одного рабочего дня.", replyDate: "16 апреля 2026" },
     { id: 2, date: "10 апреля 2026", subject: "Партнёрство", text: "Здравствуйте, хотели бы обсудить возможность партнёрства в рамках тендера на строительство дороги." },
@@ -2941,7 +3100,7 @@ export default function Index() {
 
   // Суперадмин — дашборд или публичные разделы
   if (user?.role === "superadmin") {
-    const adminSections: Section[] = ["news", "projects", "tenders"];
+    const adminSections: Section[] = ["news", "projects", "tenders", "docs"];
     const isPublicSection = adminSections.includes(section);
     const goToCabinet = () => { setAdminInitialView("cabinet"); go("home"); };
     const superAdminBar = <AdminBackBar go={go} user={user} onCabinet={goToCabinet} onLogout={logout} />;
@@ -2952,12 +3111,14 @@ export default function Index() {
             {section === "news"     && <NewsSection adminBar={superAdminBar} news={news} />}
             {section === "projects" && <ProjectsSection adminBar={superAdminBar} projects={projects} />}
             {section === "tenders"  && <TendersSection user={user} onAddApp={handleAddApp} go={go} isAdmin adminBar={superAdminBar} tenders={tenders} setTenders={setTenders} />}
+            {section === "docs"     && <DocsSection adminBar={superAdminBar} user={user} docSections={docSections} setDocSections={setDocSections} isAdmin />}
           </main>
         ) : (
           <SuperAdminDashboard user={user} setUser={setUser as (u: User) => void} onLogout={logout} go={go} cfg={cfg} onCfgSave={setCfg}
             initialView={adminInitialView} onViewChange={() => setAdminInitialView("dashboard")}
             sharedNews={news} setSharedNews={setNews}
-            sharedProjects={projects} sharedTenders={tenders} setSharedTenders={setTenders} />
+            sharedProjects={projects} sharedTenders={tenders} setSharedTenders={setTenders}
+            sharedDocs={docSections} setSharedDocs={setDocSections} />
         )}
       </div>
     );
@@ -2993,7 +3154,7 @@ export default function Index() {
         {section === "projects" && <ProjectsSection projects={projects} />}
         {section === "news"     && <NewsSection news={news} />}
         {section === "tenders"  && <TendersSection user={user} onAddApp={handleAddApp} go={go} tenders={tenders} />}
-        {section === "docs"     && <DocsSection user={user} />}
+        {section === "docs"     && <DocsSection user={user} docSections={docSections} />}
         {section === "contacts" && <ContactsSection user={user} onLogin={() => setShowLogin(true)} onSend={handleSendMessage} />}
         {section === "cabinet"  && user?.role === "user" && (
           <UserCabinet user={user} setUser={setUser} messages={messages} tenderApps={tenderApps} go={go} />
