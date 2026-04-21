@@ -1,9 +1,28 @@
 import { useState, useEffect } from "react";
 import Icon from "@/components/ui/icon";
 
-type Section = "home" | "about" | "projects" | "news" | "tenders" | "docs" | "contacts";
+type Section = "home" | "about" | "projects" | "news" | "tenders" | "docs" | "contacts" | "cabinet";
 type UserRole = "superadmin" | "contentadmin" | "user" | null;
-interface User { name: string; role: UserRole; email: string; }
+interface User { name: string; role: UserRole; email: string; phone?: string; company?: string; }
+
+interface Message {
+  id: number;
+  date: string;
+  subject: string;
+  text: string;
+  reply?: string;
+  replyDate?: string;
+}
+
+interface TenderApp {
+  id: number;
+  date: string;
+  tenderTitle: string;
+  company: string;
+  inn: string;
+  status: "pending" | "review" | "accepted" | "rejected";
+  feedback?: string;
+}
 
 // ─── Data ─────────────────────────────────────────────────────────────────────
 const PROJECTS = [
@@ -48,9 +67,9 @@ function LoginModal({ onClose, onLogin }: { onClose: () => void; onLogin: (u: Us
 
   const submit = (e: React.FormEvent) => {
     e.preventDefault(); setErr("");
-    if (email === "super@ao-urst.ru" && pw === "super123") onLogin({ name: "Иван", role: "superadmin", email });
-    else if (email === "admin@ao-urst.ru" && pw === "admin123") onLogin({ name: "Мария Иванова", role: "contentadmin", email });
-    else if (email === "user@ao-urst.ru" && pw === "user123") onLogin({ name: "Сергей Попов", role: "user", email });
+    if (email === "super@ao-urst.ru" && pw === "super123") onLogin({ name: "Иван", role: "superadmin", email, phone: "+7 (495) 000-00-01" });
+    else if (email === "admin@ao-urst.ru" && pw === "admin123") onLogin({ name: "Мария Иванова", role: "contentadmin", email, phone: "+7 (495) 000-00-02" });
+    else if (email === "user@ao-urst.ru" && pw === "user123") onLogin({ name: "Сергей Попов", role: "user", email, phone: "+7 (916) 234-56-78", company: "ООО СтройПроект" });
     else setErr("Неверный логин или пароль");
   };
 
@@ -175,8 +194,15 @@ function Header({ active, go, user, onLogin, onLogout, mob, setMob }: {
         {/* Auth */}
         <div className="flex items-center gap-3">
           {user ? (
-            <div className="flex items-center gap-3">
-              <div className="hidden md:flex items-center gap-2.5">
+            <div className="flex items-center gap-2">
+              {user.role === "user" && (
+                <button onClick={() => go("cabinet")}
+                  className="hidden md:flex items-center gap-1.5 px-3 py-1.5 rounded-lg transition-all"
+                  style={{ background: active === "cabinet" ? B : "rgba(255,255,255,.08)", color: "#fff", fontSize: ".78rem", fontFamily: "'Inter',sans-serif", fontWeight: 600 }}>
+                  <Icon name="User" size={13} /> Личный кабинет
+                </button>
+              )}
+              <div className="hidden md:flex items-center gap-2.5 ml-1">
                 <div style={{ background: B, width: 30, height: 30, borderRadius: 7, fontSize: ".8rem", fontFamily: "'Inter',sans-serif", fontWeight: 700 }}
                   className="flex items-center justify-center text-white">{user.name.charAt(0)}</div>
                 <div>
@@ -619,8 +645,148 @@ function NewsSection() {
 }
 
 // ─── Tenders ──────────────────────────────────────────────────────────────────
-function TendersSection({ user }: { user: User | null }) {
+function TenderDocsModal({ tender, onClose }: { tender: typeof TENDERS[0]; onClose: () => void }) {
+  const docs = [
+    { name: "Тендерная документация", size: "1.8 МБ", icon: "FileText" },
+    { name: "Техническое задание", size: "0.9 МБ", icon: "ClipboardList" },
+    { name: "Форма заявки", size: "0.4 МБ", icon: "FileInput" },
+    { name: "Проект договора", size: "1.1 МБ", icon: "ScrollText" },
+  ];
+  return (
+    <div className="fixed inset-0 z-50 flex items-center justify-center p-4" style={{ background: "rgba(10,15,30,.6)", backdropFilter: "blur(4px)" }}
+      onClick={e => { if (e.target === e.currentTarget) onClose(); }}>
+      <div className="bg-white rounded-2xl w-full max-w-md shadow-2xl overflow-hidden" onClick={e => e.stopPropagation()}>
+        <div style={{ height: 4, background: B }} />
+        <div className="p-6">
+          <div className="flex items-start justify-between gap-4 mb-5">
+            <div>
+              <div style={{ fontSize: ".72rem", color: MUT, marginBottom: 4 }}>Конкурсная документация</div>
+              <h2 style={{ fontFamily: "'Inter',sans-serif", fontWeight: 700, fontSize: ".95rem", color: INK, lineHeight: 1.4 }}>{tender.title}</h2>
+            </div>
+            <button onClick={onClose} className="rounded-full p-1.5 hover:bg-gray-100 transition-colors flex-shrink-0" style={{ color: MUT }}>
+              <Icon name="X" size={16} />
+            </button>
+          </div>
+          <div className="space-y-2">
+            {docs.map(d => (
+              <div key={d.name} className="flex items-center justify-between p-3.5 rounded-xl" style={{ border: "1px solid #E4E8F0" }}>
+                <div className="flex items-center gap-3">
+                  <Icon name={d.icon} size={16} style={{ color: B }} />
+                  <div>
+                    <div style={{ fontSize: ".85rem", fontWeight: 600, color: INK, fontFamily: "'Inter',sans-serif" }}>{d.name}</div>
+                    <div style={{ fontSize: ".72rem", color: MUT }}>PDF · {d.size}</div>
+                  </div>
+                </div>
+                <a href="#" onClick={e => e.preventDefault()}
+                  className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg transition-all"
+                  style={{ background: "#F0F7FF", color: B, fontSize: ".78rem", fontWeight: 600, fontFamily: "'Inter',sans-serif" }}>
+                  <Icon name="Download" size={13} /> Скачать
+                </a>
+              </div>
+            ))}
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+function TenderApplyModal({ tender, user, onClose, onSubmit }: {
+  tender: typeof TENDERS[0];
+  user: User;
+  onClose: () => void;
+  onSubmit: (app: Omit<TenderApp, "id">) => void;
+}) {
+  const [company, setCompany] = useState(user.company || "");
+  const [inn, setInn] = useState("");
+  const [fileName, setFileName] = useState("");
+  const [done, setDone] = useState(false);
+
+  const handleSubmit = () => {
+    if (!company || !inn) return;
+    onSubmit({
+      date: new Date().toLocaleDateString("ru-RU"),
+      tenderTitle: tender.title,
+      company,
+      inn,
+      status: "pending",
+    });
+    setDone(true);
+  };
+
+  if (done) return (
+    <div className="fixed inset-0 z-50 flex items-center justify-center p-4" style={{ background: "rgba(10,15,30,.6)", backdropFilter: "blur(4px)" }}
+      onClick={e => { if (e.target === e.currentTarget) onClose(); }}>
+      <div className="bg-white rounded-2xl w-full max-w-md shadow-2xl p-8 text-center" onClick={e => e.stopPropagation()}>
+        <div className="flex justify-center mb-4">
+          <div className="rounded-full flex items-center justify-center" style={{ width: 60, height: 60, background: "#DCFCE7" }}>
+            <Icon name="CheckCircle" size={30} style={{ color: "#16a34a" }} />
+          </div>
+        </div>
+        <h3 style={{ fontFamily: "'Inter',sans-serif", fontWeight: 700, fontSize: "1rem", color: INK, marginBottom: 8 }}>Заявка отправлена</h3>
+        <p style={{ fontSize: ".85rem", color: MUT, lineHeight: 1.7, marginBottom: 16 }}>
+          Ожидайте обратной связи от нашего специалиста. Статус заявки вы можете отслеживать в личном кабинете.
+        </p>
+        <button onClick={onClose} className="btn-primary justify-center w-full">Закрыть</button>
+      </div>
+    </div>
+  );
+
+  return (
+    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 overflow-y-auto" style={{ background: "rgba(10,15,30,.6)", backdropFilter: "blur(4px)" }}
+      onClick={e => { if (e.target === e.currentTarget) onClose(); }}>
+      <div className="bg-white rounded-2xl w-full max-w-lg shadow-2xl overflow-hidden my-4" onClick={e => e.stopPropagation()}>
+        <div style={{ height: 4, background: B }} />
+        <div className="p-7">
+          <div className="flex items-start justify-between gap-4 mb-6">
+            <div>
+              <div style={{ fontSize: ".72rem", color: MUT, marginBottom: 4 }}>Подача заявки</div>
+              <h2 style={{ fontFamily: "'Inter',sans-serif", fontWeight: 700, fontSize: ".95rem", color: INK, lineHeight: 1.4 }}>{tender.title}</h2>
+            </div>
+            <button onClick={onClose} className="rounded-full p-1.5 hover:bg-gray-100 transition-colors flex-shrink-0" style={{ color: MUT }}>
+              <Icon name="X" size={16} />
+            </button>
+          </div>
+          <div className="space-y-4">
+            <div>
+              <label className="block text-xs font-semibold mb-1.5 uppercase tracking-wider" style={{ color: MUT, fontFamily: "'Inter',sans-serif" }}>Название компании *</label>
+              <input className="field" value={company} onChange={e => setCompany(e.target.value)} placeholder="ООО Название" />
+            </div>
+            <div>
+              <label className="block text-xs font-semibold mb-1.5 uppercase tracking-wider" style={{ color: MUT, fontFamily: "'Inter',sans-serif" }}>ИНН *</label>
+              <input className="field" value={inn} onChange={e => setInn(e.target.value)} placeholder="7700000000" />
+            </div>
+            <div>
+              <label className="block text-xs font-semibold mb-1.5 uppercase tracking-wider" style={{ color: MUT, fontFamily: "'Inter',sans-serif" }}>Коммерческое предложение</label>
+              <label className="flex items-center gap-3 p-3.5 rounded-xl cursor-pointer transition-all" style={{ border: "1.5px dashed #CBD5E1" }}>
+                <Icon name="Upload" size={16} style={{ color: MUT }} />
+                <span style={{ fontSize: ".85rem", color: fileName ? INK : MUT }}>{fileName || "Прикрепить файл (PDF, DOCX)"}</span>
+                <input type="file" accept=".pdf,.doc,.docx" className="hidden" onChange={e => setFileName(e.target.files?.[0]?.name || "")} />
+              </label>
+            </div>
+            <div className="p-4 rounded-xl" style={{ background: "#F7F8FC", border: "1px solid #E4E8F0" }}>
+              <div style={{ fontSize: ".75rem", color: MUT, marginBottom: 8, fontWeight: 600, fontFamily: "'Inter',sans-serif", textTransform: "uppercase", letterSpacing: ".06em" }}>Контактное лицо (из профиля)</div>
+              <div className="space-y-1.5" style={{ fontSize: ".85rem", color: INK }}>
+                <div className="flex items-center gap-2"><Icon name="User" size={13} style={{ color: MUT }} /> {user.name}</div>
+                <div className="flex items-center gap-2"><Icon name="Phone" size={13} style={{ color: MUT }} /> {user.phone || "—"}</div>
+                <div className="flex items-center gap-2"><Icon name="Mail" size={13} style={{ color: MUT }} /> {user.email}</div>
+              </div>
+            </div>
+            <button onClick={handleSubmit} disabled={!company || !inn} className="btn-primary w-full justify-center"
+              style={{ opacity: (!company || !inn) ? 0.5 : 1 }}>
+              Отправить заявку <Icon name="Send" size={14} />
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+function TendersSection({ user, onAddApp, go }: { user: User | null; onAddApp: (app: Omit<TenderApp, "id">) => void; go: (s: Section) => void }) {
   const [tab, setTab] = useState<"active" | "closed">("active");
+  const [docsModal, setDocsModal] = useState<typeof TENDERS[0] | null>(null);
+  const [applyModal, setApplyModal] = useState<typeof TENDERS[0] | null>(null);
   const filtered = TENDERS.filter(t => t.status === tab);
 
   return (
@@ -628,14 +794,10 @@ function TendersSection({ user }: { user: User | null }) {
       <PageHeader label="Закупки" title="Тендеры" sub="Актуальные конкурсные процедуры компании." />
       <div className="py-16 bg-white">
         <div className="max-w-7xl mx-auto px-6">
-          {user?.role === "admin" && (
-            <div className="rounded-2xl p-5 mb-8 flex items-center justify-between"
-              style={{ background: "rgba(0,102,255,.05)", border: "1px solid rgba(0,102,255,.18)" }}>
-              <div className="flex items-center gap-3">
-                <Icon name="ShieldCheck" size={17} style={{ color: B }} />
-                <span style={{ fontFamily: "'Inter',sans-serif", fontWeight: 600, fontSize: ".88rem", color: INK }}>Панель администратора</span>
-              </div>
-              <button className="btn-primary text-xs py-2 px-4"><Icon name="Plus" size={13} /> Добавить</button>
+          {!user && (
+            <div className="rounded-2xl p-4 mb-8 flex items-center gap-3" style={{ background: "#FFF8ED", border: "1px solid #FDE68A" }}>
+              <Icon name="Info" size={16} style={{ color: "#f59e0b" }} />
+              <span style={{ fontSize: ".85rem", color: INK }}>Для скачивания документов и подачи заявок необходимо <button onClick={() => {}} className="font-semibold underline" style={{ color: B }}>войти в систему</button>.</span>
             </div>
           )}
           {/* Tabs */}
@@ -669,14 +831,30 @@ function TendersSection({ user }: { user: User | null }) {
                   </div>
                 </div>
                 <div className="flex gap-2 flex-shrink-0">
-                  <button className="btn-outline text-xs py-2 px-4"><Icon name="FileText" size={13} /> Документы</button>
-                  {tender.status === "active" && <button className="btn-primary text-xs py-2 px-4">Подать заявку</button>}
+                  {user
+                    ? <button onClick={() => setDocsModal(tender)} className="btn-outline text-xs py-2 px-4"><Icon name="FileText" size={13} /> Документы</button>
+                    : <button onClick={() => go("contacts")} className="btn-outline text-xs py-2 px-4"><Icon name="Lock" size={13} /> Документы</button>
+                  }
+                  {tender.status === "active" && (
+                    user
+                      ? <button onClick={() => setApplyModal(tender)} className="btn-primary text-xs py-2 px-4">Подать заявку</button>
+                      : <button onClick={() => go("contacts")} className="btn-primary text-xs py-2 px-4" style={{ opacity: 0.6 }}>Подать заявку</button>
+                  )}
                 </div>
               </div>
             ))}
           </div>
         </div>
       </div>
+      {docsModal && <TenderDocsModal tender={docsModal} onClose={() => setDocsModal(null)} />}
+      {applyModal && user && (
+        <TenderApplyModal
+          tender={applyModal}
+          user={user}
+          onClose={() => setApplyModal(null)}
+          onSubmit={app => { onAddApp(app); setApplyModal(null); }}
+        />
+      )}
     </div>
   );
 }
@@ -751,14 +929,17 @@ function DocsSection({ user }: { user: User | null }) {
 }
 
 // ─── Contacts ─────────────────────────────────────────────────────────────────
-function ContactsSection({ user, onLogin }: { user: User | null; onLogin: () => void }) {
+function ContactsSection({ user, onLogin, onSend }: { user: User | null; onLogin: () => void; onSend: (subject: string, text: string) => void }) {
   const [sent, setSent] = useState(false);
+  const [subject, setSubject] = useState("Строительный проект");
+  const [msgText, setMsgText] = useState("");
   const offices = [
     { city: "Москва (Главный офис)", address: "г. Москва, ул. Климашкина 22 с 2", phone: "+7 (495) 940-07-03", email: "info@ao-urst.ru" },
     { city: "Москва (Офис)", address: "г. Москва, ул. 5-я Магистральная 10", phone: "+7 (495) 374-18-92", email: "office2@ao-urst.ru" },
   ];
 
   const handleSend = () => {
+    onSend(subject, msgText || "Сообщение без текста");
     setSent(true);
   };
 
@@ -790,9 +971,11 @@ function ContactsSection({ user, onLogin }: { user: User | null; onLogin: () => 
                     </button>
                   </>
                 ) : (
-                  <p style={{ fontSize: ".85rem", color: MUT, lineHeight: 1.7 }}>
-                    Мы свяжемся с вами в ближайшее время.
-                  </p>
+                  <>
+                    <p style={{ fontSize: ".85rem", color: MUT, lineHeight: 1.7, marginBottom: 16 }}>
+                      Сообщение сохранено. Ответ появится в вашем личном кабинете.
+                    </p>
+                  </>
                 )}
                 <button onClick={() => setSent(false)} className="mt-4 block mx-auto text-xs" style={{ color: MUT }}>Отправить ещё одно сообщение</button>
               </div>
@@ -818,7 +1001,7 @@ function ContactsSection({ user, onLogin }: { user: User | null; onLogin: () => 
                 </div>
                 <div>
                   <label className="block text-xs font-semibold mb-1.5 uppercase tracking-wider" style={{ color: MUT, fontFamily: "'Inter',sans-serif" }}>Тема</label>
-                  <select className="field">
+                  <select className="field" value={subject} onChange={e => setSubject(e.target.value)}>
                     <option>Строительный проект</option>
                     <option>Участие в тендере</option>
                     <option>Партнёрство</option>
@@ -827,7 +1010,7 @@ function ContactsSection({ user, onLogin }: { user: User | null; onLogin: () => 
                 </div>
                 <div>
                   <label className="block text-xs font-semibold mb-1.5 uppercase tracking-wider" style={{ color: MUT, fontFamily: "'Inter',sans-serif" }}>Сообщение</label>
-                  <textarea className="field" rows={4} placeholder="Опишите ваш запрос…" />
+                  <textarea className="field" rows={4} placeholder="Опишите ваш запрос…" value={msgText} onChange={e => setMsgText(e.target.value)} />
                 </div>
                 <button onClick={handleSend} className="btn-primary w-full justify-center">Отправить сообщение <Icon name="Send" size={14} /></button>
               </div>
@@ -907,6 +1090,177 @@ function ContactsSection({ user, onLogin }: { user: User | null; onLogin: () => 
             />
           </div>
         </div>
+      </div>
+    </div>
+  );
+}
+
+// ─── User Cabinet ─────────────────────────────────────────────────────────────
+function UserCabinet({ user, setUser, messages, tenderApps, go }: {
+  user: User;
+  setUser: (u: User) => void;
+  messages: Message[];
+  tenderApps: TenderApp[];
+  go: (s: Section) => void;
+}) {
+  const [tab, setTab] = useState<"profile" | "messages" | "apps">("profile");
+  const [editing, setEditing] = useState(false);
+  const [phone, setPhone] = useState(user.phone || "");
+  const [company, setCompany] = useState(user.company || "");
+  const [name, setName] = useState(user.name);
+
+  const statusLabel: Record<TenderApp["status"], string> = {
+    pending: "На рассмотрении",
+    review: "Изучается",
+    accepted: "Принята",
+    rejected: "Отклонена",
+  };
+  const statusColor: Record<TenderApp["status"], string> = {
+    pending: "#f59e0b",
+    review: "#3b82f6",
+    accepted: "#16a34a",
+    rejected: "#ef4444",
+  };
+
+  return (
+    <div style={{ background: "#F7F8FC", minHeight: "100vh", paddingTop: 90 }}>
+      <div className="max-w-5xl mx-auto px-6 py-10">
+        {/* Header */}
+        <div className="flex items-center gap-4 mb-8">
+          <div style={{ background: B, width: 52, height: 52, borderRadius: 14, fontSize: "1.3rem", fontFamily: "'Inter',sans-serif", fontWeight: 800 }}
+            className="flex items-center justify-center text-white flex-shrink-0">{user.name.charAt(0)}</div>
+          <div>
+            <div style={{ fontFamily: "'Inter',sans-serif", fontWeight: 800, fontSize: "1.15rem", color: INK }}>{user.name}</div>
+            <div style={{ fontSize: ".8rem", color: MUT }}>Личный кабинет</div>
+          </div>
+        </div>
+
+        {/* Tabs */}
+        <div className="flex gap-1 p-1 rounded-xl mb-8 w-fit" style={{ background: "#fff", border: "1px solid #E4E8F0" }}>
+          {([
+            { key: "profile", label: "Профиль", icon: "User" },
+            { key: "messages", label: "Сообщения", icon: "Mail" },
+            { key: "apps", label: "Заявки", icon: "FileText" },
+          ] as const).map(t => (
+            <button key={t.key} onClick={() => setTab(t.key)}
+              className="flex items-center gap-2 px-5 py-2 rounded-lg text-sm font-semibold transition-all"
+              style={{
+                fontFamily: "'Inter',sans-serif",
+                background: tab === t.key ? INK : "transparent",
+                color: tab === t.key ? "#fff" : MUT,
+              }}>
+              <Icon name={t.icon} size={14} /> {t.label}
+            </button>
+          ))}
+        </div>
+
+        {/* Profile */}
+        {tab === "profile" && (
+          <div className="bg-white rounded-2xl p-8" style={{ border: "1px solid #E4E8F0" }}>
+            <div className="flex items-center justify-between mb-6">
+              <h2 style={{ fontFamily: "'Inter',sans-serif", fontWeight: 700, fontSize: "1rem", color: INK }}>Личные данные</h2>
+              {!editing
+                ? <button onClick={() => setEditing(true)} className="btn-outline text-xs py-2 px-4"><Icon name="Pencil" size={13} /> Редактировать</button>
+                : <div className="flex gap-2">
+                    <button onClick={() => {
+                      setUser({ ...user, name, phone, company });
+                      setEditing(false);
+                    }} className="btn-primary text-xs py-2 px-4"><Icon name="Check" size={13} /> Сохранить</button>
+                    <button onClick={() => setEditing(false)} className="btn-outline text-xs py-2 px-4">Отмена</button>
+                  </div>
+              }
+            </div>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
+              {[
+                { label: "Имя и фамилия", value: name, setter: setName, field: "name" },
+                { label: "Email", value: user.email, setter: () => {}, field: "email", readonly: true },
+                { label: "Телефон", value: phone, setter: setPhone, field: "phone" },
+                { label: "Компания", value: company, setter: setCompany, field: "company" },
+              ].map(({ label, value, setter, readonly }) => (
+                <div key={label}>
+                  <label className="block text-xs font-semibold mb-1.5 uppercase tracking-wider" style={{ color: MUT, fontFamily: "'Inter',sans-serif" }}>{label}</label>
+                  {editing && !readonly
+                    ? <input className="field" value={value} onChange={e => setter(e.target.value)} />
+                    : <div className="px-3 py-2.5 rounded-xl" style={{ background: "#F7F8FC", fontSize: ".88rem", color: INK, fontFamily: "'Golos Text',sans-serif" }}>{value || "—"}</div>
+                  }
+                </div>
+              ))}
+            </div>
+          </div>
+        )}
+
+        {/* Messages */}
+        {tab === "messages" && (
+          <div className="space-y-4">
+            {messages.length === 0 ? (
+              <div className="bg-white rounded-2xl p-10 text-center" style={{ border: "1px solid #E4E8F0" }}>
+                <Icon name="Mail" size={32} style={{ color: "#D1D5DB", margin: "0 auto 12px" }} />
+                <p style={{ color: MUT, fontSize: ".88rem" }}>Вы ещё не отправляли сообщений.</p>
+                <button onClick={() => go("contacts")} className="btn-primary mt-4 justify-center text-xs py-2 px-5">Написать нам</button>
+              </div>
+            ) : messages.map(m => (
+              <div key={m.id} className="bg-white rounded-2xl p-6" style={{ border: "1px solid #E4E8F0" }}>
+                <div className="flex items-start justify-between gap-4 mb-3">
+                  <h3 style={{ fontFamily: "'Inter',sans-serif", fontWeight: 700, fontSize: ".9rem", color: INK }}>{m.subject}</h3>
+                  <span style={{ fontSize: ".72rem", color: MUT, flexShrink: 0 }}>{m.date}</span>
+                </div>
+                <p style={{ fontSize: ".85rem", color: MUT, lineHeight: 1.7 }}>{m.text}</p>
+                {m.reply ? (
+                  <div className="mt-4 p-4 rounded-xl" style={{ background: "#F0F7FF", borderLeft: `3px solid ${B}` }}>
+                    <div className="flex items-center gap-2 mb-2">
+                      <Icon name="MessageSquare" size={13} style={{ color: B }} />
+                      <span style={{ fontSize: ".75rem", fontWeight: 700, color: B, fontFamily: "'Inter',sans-serif" }}>Ответ от АО УРСТ · {m.replyDate}</span>
+                    </div>
+                    <p style={{ fontSize: ".85rem", color: INK, lineHeight: 1.7 }}>{m.reply}</p>
+                  </div>
+                ) : (
+                  <div className="mt-3 flex items-center gap-1.5" style={{ fontSize: ".75rem", color: "#f59e0b" }}>
+                    <Icon name="Clock" size={12} /> Ожидает ответа
+                  </div>
+                )}
+              </div>
+            ))}
+            <button onClick={() => go("contacts")} className="btn-outline w-full justify-center text-sm mt-2">
+              <Icon name="Plus" size={14} /> Написать новое сообщение
+            </button>
+          </div>
+        )}
+
+        {/* Tender Applications */}
+        {tab === "apps" && (
+          <div className="space-y-4">
+            {tenderApps.length === 0 ? (
+              <div className="bg-white rounded-2xl p-10 text-center" style={{ border: "1px solid #E4E8F0" }}>
+                <Icon name="FileText" size={32} style={{ color: "#D1D5DB", margin: "0 auto 12px" }} />
+                <p style={{ color: MUT, fontSize: ".88rem" }}>Вы ещё не подавали заявок на тендеры.</p>
+                <button onClick={() => go("tenders")} className="btn-primary mt-4 justify-center text-xs py-2 px-5">Перейти к тендерам</button>
+              </div>
+            ) : tenderApps.map(app => (
+              <div key={app.id} className="bg-white rounded-2xl p-6" style={{ border: "1px solid #E4E8F0" }}>
+                <div className="flex items-start justify-between gap-4 mb-2">
+                  <h3 style={{ fontFamily: "'Inter',sans-serif", fontWeight: 700, fontSize: ".9rem", color: INK }}>{app.tenderTitle}</h3>
+                  <span style={{ fontSize: ".72rem", fontWeight: 700, color: statusColor[app.status], flexShrink: 0, fontFamily: "'Inter',sans-serif" }}>
+                    ● {statusLabel[app.status]}
+                  </span>
+                </div>
+                <div className="flex gap-4 mb-3" style={{ fontSize: ".8rem", color: MUT }}>
+                  <span>{app.company}</span>
+                  <span>ИНН: {app.inn}</span>
+                  <span>{app.date}</span>
+                </div>
+                {app.feedback && (
+                  <div className="p-4 rounded-xl" style={{ background: "#F0F7FF", borderLeft: `3px solid ${B}` }}>
+                    <div className="flex items-center gap-2 mb-1">
+                      <Icon name="MessageSquare" size={13} style={{ color: B }} />
+                      <span style={{ fontSize: ".75rem", fontWeight: 700, color: B, fontFamily: "'Inter',sans-serif" }}>Обратная связь от АО УРСТ</span>
+                    </div>
+                    <p style={{ fontSize: ".85rem", color: INK }}>{app.feedback}</p>
+                  </div>
+                )}
+              </div>
+            ))}
+          </div>
+        )}
       </div>
     </div>
   );
@@ -1135,7 +1489,7 @@ function ContentAdminDashboard({ user }: { user: User }) {
 
 // ─── Footer ───────────────────────────────────────────────────────────────────
 function Footer({ go }: { go: (s: Section) => void }) {
-  const labels: Record<Section, string> = { home: "Главная", about: "О компании", projects: "Проекты", news: "Новости", tenders: "Тендеры", docs: "Документация", contacts: "Контакты" };
+  const labels: Record<Section, string> = { home: "Главная", about: "О компании", projects: "Проекты", news: "Новости", tenders: "Тендеры", docs: "Документация", contacts: "Контакты", cabinet: "Личный кабинет" };
   return (
     <footer style={{ background: "#05091A", borderTop: "1px solid rgba(255,255,255,.05)" }}>
       <div className="max-w-7xl mx-auto px-6 py-14 grid grid-cols-1 md:grid-cols-4 gap-10">
@@ -1195,12 +1549,31 @@ export default function Index() {
   const [user, setUser] = useState<User | null>(null);
   const [showLogin, setShowLogin] = useState(false);
   const [mob, setMob] = useState(false);
+  const [messages, setMessages] = useState<Message[]>([
+    { id: 1, date: "15 апреля 2026", subject: "Строительный проект", text: "Добрый день! Интересует возможность сотрудничества по строительству объекта в Подмосковье. Прошу предоставить информацию о ваших услугах.", reply: "Добрый день! Спасибо за обращение. Мы готовы рассмотреть ваш проект. Наш менеджер свяжется с вами в течение одного рабочего дня.", replyDate: "16 апреля 2026" },
+    { id: 2, date: "10 апреля 2026", subject: "Партнёрство", text: "Здравствуйте, хотели бы обсудить возможность партнёрства в рамках тендера на строительство дороги." },
+  ]);
+  const [tenderApps, setTenderApps] = useState<TenderApp[]>([
+    { id: 1, date: "5 апреля 2026", tenderTitle: "Проектирование объектов инфраструктуры", company: "ООО СтройПроект", inn: "7712345678", status: "review", feedback: "Ваша заявка принята в работу. Ожидайте результатов рассмотрения до 25 апреля 2026." },
+  ]);
 
   useEffect(() => { window.scrollTo({ top: 0, behavior: "smooth" }); }, [section]);
 
   const go = (s: Section) => { setSection(s); setMob(false); };
-
   const logout = () => { setUser(null); go("home"); };
+
+  const handleSendMessage = (subject: string, text: string) => {
+    setMessages(prev => [...prev, {
+      id: Date.now(),
+      date: new Date().toLocaleDateString("ru-RU", { day: "numeric", month: "long", year: "numeric" }),
+      subject,
+      text,
+    }]);
+  };
+
+  const handleAddApp = (app: Omit<TenderApp, "id">) => {
+    setTenderApps(prev => [...prev, { ...app, id: Date.now() }]);
+  };
 
   // Суперадмин видит только дашборд
   if (user?.role === "superadmin") {
@@ -1232,11 +1605,14 @@ export default function Index() {
         {section === "about"    && <AboutSection />}
         {section === "projects" && <ProjectsSection />}
         {section === "news"     && <NewsSection />}
-        {section === "tenders"  && <TendersSection user={user} />}
+        {section === "tenders"  && <TendersSection user={user} onAddApp={handleAddApp} go={go} />}
         {section === "docs"     && <DocsSection user={user} />}
-        {section === "contacts" && <ContactsSection user={user} onLogin={() => setShowLogin(true)} />}
+        {section === "contacts" && <ContactsSection user={user} onLogin={() => setShowLogin(true)} onSend={handleSendMessage} />}
+        {section === "cabinet"  && user?.role === "user" && (
+          <UserCabinet user={user} setUser={setUser} messages={messages} tenderApps={tenderApps} go={go} />
+        )}
       </main>
-      <Footer go={go} />
+      {section !== "cabinet" && <Footer go={go} />}
       {showLogin && <LoginModal onClose={() => setShowLogin(false)} onLogin={u => { setUser(u); setShowLogin(false); }} />}
     </div>
   );
