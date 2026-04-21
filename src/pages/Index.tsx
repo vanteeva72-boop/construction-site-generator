@@ -25,7 +25,10 @@ interface TenderApp {
 }
 
 // ─── Data ─────────────────────────────────────────────────────────────────────
-const PROJECTS = [
+interface ProjectItem {
+  id: number; title: string; type: string; year?: number; area?: string; img: string; status: "Сдан" | "В процессе";
+}
+const PROJECTS_INITIAL: ProjectItem[] = [
   { id: 1, title: "Парк «Зарядье»", type: "ПГС", year: 2018, area: "83 850 м²", img: "https://cdn.poehali.dev/projects/232d353a-884c-46d3-ba1a-b2a0e421060f/bucket/10fe1108-41e2-4553-953a-cb83313f04c8.jpg", status: "Сдан" },
   { id: 7, title: "Дворец гимнастики Ирины Винер-Усмановой", type: "ПГС", year: 2019, area: "25 730 м²", img: "https://cdn.poehali.dev/projects/232d353a-884c-46d3-ba1a-b2a0e421060f/bucket/582f8aa5-35a9-400f-b230-6632fc6056e0.jpg", status: "Сдан" },
   { id: 2, title: "Участок метро «Южная – Коммунарка»", type: "Метро и тоннели", year: 2019, area: "6.4 км", img: "https://cdn.poehali.dev/projects/232d353a-884c-46d3-ba1a-b2a0e421060f/files/03ec1b03-d6a3-43b2-bece-dab3c668cab4.jpg", status: "Сдан" },
@@ -369,7 +372,8 @@ function PageHeader({ label, title, sub, compact }: { label: string; title: stri
 }
 
 // ─── Home ─────────────────────────────────────────────────────────────────────
-function HomeSection({ go }: { go: (s: Section) => void }) {
+function HomeSection({ go, news: newsProp }: { go: (s: Section) => void; news?: NewsItem[] }) {
+  const news = newsProp ?? NEWS_INITIAL;
   const stats = [
     { value: "13+", label: "Лет на рынке" },
     { value: "250 млн. руб.", label: "Составляет уставный капитал" },
@@ -505,7 +509,7 @@ function HomeSection({ go }: { go: (s: Section) => void }) {
             </button>
           </div>
           <div className="grid grid-cols-1 md:grid-cols-3 gap-5">
-            {NEWS_INITIAL.slice(0, 3).map((n, idx) => (
+            {news.filter(n => !n.draft).slice(0, 3).map((n, idx) => (
               <div key={n.id} onClick={() => go("news")} className="card-lift bg-white rounded-2xl overflow-hidden group cursor-pointer"
                 style={{ border: "1px solid #E4E8F0" }}>
                 <div style={{ height: 4, background: idx === 0 ? B : "#E4E8F0" }} />
@@ -626,20 +630,36 @@ function AboutSection() {
 }
 
 // ─── Projects ─────────────────────────────────────────────────────────────────
-function ProjectsSection({ adminBar }: { adminBar?: React.ReactNode } = {}) {
+function ProjectsSection({ adminBar, projects: projectsProp, setProjects, isAdmin }: {
+  adminBar?: React.ReactNode; projects?: ProjectItem[];
+  setProjects?: React.Dispatch<React.SetStateAction<ProjectItem[]>>; isAdmin?: boolean;
+} = {}) {
+  const projects = projectsProp ?? PROJECTS_INITIAL;
   const [filter, setFilter] = useState("Все");
-  const types = ["Все", "ПГС", "Метро и тоннели", "Дорожное строительство", "Инженерная инфраструктура"];
-  const filtered = filter === "Все" ? PROJECTS : PROJECTS.filter(p => p.type === filter);
+  const [addProject, setAddProject] = useState(false);
+  const [toast, setToast] = useState("");
+  const [deleteId, setDeleteId] = useState<number | null>(null);
+
+  const allTypes = ["Все", ...Array.from(new Set(projects.map(p => p.type)))];
+  const filtered = filter === "Все" ? projects : projects.filter(p => p.type === filter);
+
+  const handleAdd = (p: ProjectItem) => { setProjects?.(prev => [p, ...prev]); setToast("Проект успешно опубликован!"); };
+  const handleDelete = (id: number) => { setProjects?.(p => p.filter(x => x.id !== id)); setDeleteId(null); };
 
   return (
     <div>
+      {toast && <Toast message={toast} onClose={() => setToast("")} />}
       {adminBar}
       <PageHeader label="Портфолио" title="Проекты" sub="120+ реализованных объектов по всей России." compact={!!adminBar} />
       <div className="py-16 bg-white">
         <div className="max-w-7xl mx-auto px-6">
-          {/* Filter chips */}
+          {isAdmin && (
+            <div className="flex justify-end mb-4">
+              <button onClick={() => setAddProject(true)} className="btn-primary text-sm"><Icon name="Plus" size={14} /> Добавить проект</button>
+            </div>
+          )}
           <div className="flex flex-wrap gap-2 mb-10">
-            {types.map(t => (
+            {allTypes.map(t => (
               <button key={t} onClick={() => setFilter(t)}
                 className="px-4 py-2 rounded-full text-xs font-semibold transition-all"
                 style={{
@@ -654,7 +674,14 @@ function ProjectsSection({ adminBar }: { adminBar?: React.ReactNode } = {}) {
           </div>
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5">
             {filtered.map(p => (
-              <div key={p.id} className="card-lift rounded-2xl overflow-hidden group" style={{ border: "1px solid #E4E8F0" }}>
+              <div key={p.id} className="card-lift rounded-2xl overflow-hidden group relative" style={{ border: "1px solid #E4E8F0" }}>
+                {isAdmin && (
+                  <button onClick={() => setDeleteId(p.id)}
+                    className="absolute top-3 right-3 z-10 p-1.5 rounded-lg transition-colors"
+                    style={{ background: "rgba(239,68,68,.85)" }} title="Удалить">
+                    <Icon name="Trash2" size={13} style={{ color: "#fff" }} />
+                  </button>
+                )}
                 <div className="relative overflow-hidden" style={{ height: 200 }}>
                   <img src={p.img} alt={p.title} className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105" />
                   <div className="absolute inset-0" style={{ background: "linear-gradient(to top, rgba(5,9,26,.85), transparent)" }} />
@@ -669,12 +696,230 @@ function ProjectsSection({ adminBar }: { adminBar?: React.ReactNode } = {}) {
                 <div className="p-5">
                   <h3 style={{ fontFamily: "'Inter',sans-serif", fontWeight: 700, fontSize: ".9rem", color: INK, marginBottom: 10, lineHeight: 1.4 }}>{p.title}</h3>
                   <div className="flex gap-4" style={{ fontSize: ".78rem", color: "#4A5568" }}>
-                    <span className="flex items-center gap-1"><Icon name="Calendar" size={11} /> {p.year}</span>
-                    <span className="flex items-center gap-1"><Icon name="Maximize2" size={11} /> {p.area}</span>
+                    {p.year && <span className="flex items-center gap-1"><Icon name="Calendar" size={11} /> {p.year}</span>}
+                    {p.area && <span className="flex items-center gap-1"><Icon name="Maximize2" size={11} /> {p.area}</span>}
                   </div>
                 </div>
               </div>
             ))}
+          </div>
+        </div>
+      </div>
+      {addProject && <AddProjectModal onClose={() => setAddProject(false)} onAdd={handleAdd}
+        existingTypes={Array.from(new Set(projects.map(p => p.type)))} />}
+      {deleteId !== null && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4" style={{ background: "rgba(10,15,30,.6)", backdropFilter: "blur(4px)" }}>
+          <div className="bg-white rounded-2xl w-full max-w-sm p-7 shadow-2xl text-center">
+            <div className="w-14 h-14 rounded-full flex items-center justify-center mx-auto mb-4" style={{ background: "rgba(239,68,68,.1)" }}>
+              <Icon name="Trash2" size={24} style={{ color: "#ef4444" }} />
+            </div>
+            <h3 style={{ fontFamily: "'Inter',sans-serif", fontWeight: 700, fontSize: "1rem", color: INK, marginBottom: 8 }}>Удалить проект?</h3>
+            <p style={{ fontSize: ".85rem", color: MUT, marginBottom: 20 }}>Это действие нельзя отменить.</p>
+            <div className="flex gap-3">
+              <button onClick={() => handleDelete(deleteId)} className="flex-1 py-2.5 rounded-xl font-semibold text-sm text-white" style={{ background: "#ef4444", fontFamily: "'Inter',sans-serif" }}>Удалить</button>
+              <button onClick={() => setDeleteId(null)} className="flex-1 py-2.5 rounded-xl font-semibold text-sm btn-outline">Отмена</button>
+            </div>
+          </div>
+        </div>
+      )}
+    </div>
+  );
+}
+
+// ─── Toast уведомление ────────────────────────────────────────────────────────
+function Toast({ message, onClose }: { message: string; onClose: () => void }) {
+  useEffect(() => { const t = setTimeout(onClose, 3500); return () => clearTimeout(t); }, []);
+  return (
+    <div className="fixed bottom-6 left-1/2 z-[200] flex items-center gap-3 px-5 py-3.5 rounded-2xl shadow-2xl"
+      style={{ transform: "translateX(-50%)", background: "#10b981", color: "#fff", fontFamily: "'Inter',sans-serif", fontWeight: 600, fontSize: ".9rem", minWidth: 260 }}>
+      <Icon name="CheckCircle" size={18} style={{ flexShrink: 0 }} />
+      {message}
+      <button onClick={onClose} className="ml-auto opacity-70 hover:opacity-100"><Icon name="X" size={14} /></button>
+    </div>
+  );
+}
+
+// ─── AddNewsModal ─────────────────────────────────────────────────────────────
+function AddNewsModal({ onClose, onAdd }: { onClose: () => void; onAdd: (n: NewsItem) => void }) {
+  const [title, setTitle] = useState("");
+  const [text, setText] = useState("");
+  const [category, setCategory] = useState("Компания");
+  const [imgFile, setImgFile] = useState("");
+  const [errors, setErrors] = useState<Record<string, string>>({});
+
+  const handle = () => {
+    const errs: Record<string, string> = {};
+    if (!title.trim()) errs.title = "Введите заголовок";
+    if (!text.trim()) errs.text = "Введите текст";
+    if (Object.keys(errs).length) { setErrors(errs); return; }
+    const now = new Date().toLocaleDateString("ru-RU", { day: "numeric", month: "long", year: "numeric" });
+    onAdd({ id: Date.now(), date: now, category, title, text: text.slice(0, 180), full: text, img: imgFile || undefined } as NewsItem);
+    onClose();
+  };
+
+  return (
+    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 overflow-y-auto" style={{ background: "rgba(10,15,30,.6)", backdropFilter: "blur(4px)" }}
+      onClick={e => { if (e.target === e.currentTarget) onClose(); }}>
+      <div className="bg-white rounded-2xl w-full max-w-lg shadow-2xl" onClick={e => e.stopPropagation()}>
+        <div style={{ height: 4, background: B }} />
+        <div className="p-7">
+          <div className="flex items-center justify-between mb-6">
+            <h2 style={{ fontFamily: "'Inter',sans-serif", fontWeight: 700, fontSize: "1rem", color: INK }}>Новая новость</h2>
+            <button onClick={onClose} className="p-1.5 rounded-full hover:bg-gray-100" style={{ color: MUT }}><Icon name="X" size={16} /></button>
+          </div>
+          <div className="space-y-4">
+            <div>
+              <label className="block text-xs font-semibold mb-1.5 uppercase tracking-wider" style={{ color: MUT, fontFamily: "'Inter',sans-serif" }}>Категория</label>
+              <select className="field" value={category} onChange={e => setCategory(e.target.value)}>
+                {["Компания", "Проекты", "Тендеры", "Отрасль"].map(c => <option key={c}>{c}</option>)}
+              </select>
+            </div>
+            <div>
+              <label className="block text-xs font-semibold mb-1.5 uppercase tracking-wider" style={{ color: MUT, fontFamily: "'Inter',sans-serif" }}>Заголовок *</label>
+              <input className="field" value={title} onChange={e => { setTitle(e.target.value); setErrors(p => ({ ...p, title: "" })); }} placeholder="Введите заголовок новости"
+                style={{ borderColor: errors.title ? "#ef4444" : undefined }} />
+              {errors.title && <p style={{ color: "#ef4444", fontSize: ".75rem", marginTop: 4 }}>{errors.title}</p>}
+            </div>
+            <div>
+              <label className="block text-xs font-semibold mb-1.5 uppercase tracking-wider" style={{ color: MUT, fontFamily: "'Inter',sans-serif" }}>Текст новости *</label>
+              <textarea className="field" rows={5} value={text} onChange={e => { setText(e.target.value); setErrors(p => ({ ...p, text: "" })); }} placeholder="Введите полный текст новости..."
+                style={{ borderColor: errors.text ? "#ef4444" : undefined, resize: "vertical" }} />
+              {errors.text && <p style={{ color: "#ef4444", fontSize: ".75rem", marginTop: 4 }}>{errors.text}</p>}
+            </div>
+            <div>
+              <label className="block text-xs font-semibold mb-1.5 uppercase tracking-wider" style={{ color: MUT, fontFamily: "'Inter',sans-serif" }}>Баннер / Картинка</label>
+              <label className="flex items-center gap-3 p-3.5 rounded-xl cursor-pointer" style={{ border: "1.5px dashed #CBD5E1" }}>
+                <Icon name="Image" size={16} style={{ color: MUT }} />
+                <span style={{ fontSize: ".85rem", color: imgFile ? INK : MUT }}>{imgFile || "Прикрепить изображение (JPG, PNG)"}</span>
+                <input type="file" accept="image/*" className="hidden" onChange={e => setImgFile(e.target.files?.[0]?.name || "")} />
+              </label>
+            </div>
+            <button onClick={handle} className="btn-primary w-full justify-center">Опубликовать новость <Icon name="Send" size={14} /></button>
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+// ─── EditNewsModal ────────────────────────────────────────────────────────────
+function EditNewsModal({ item, onClose, onSave }: { item: NewsItem; onClose: () => void; onSave: (n: NewsItem) => void }) {
+  const [title, setTitle] = useState(item.title);
+  const [text, setText] = useState(item.full);
+  const [category, setCategory] = useState(item.category);
+
+  return (
+    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 overflow-y-auto" style={{ background: "rgba(10,15,30,.6)", backdropFilter: "blur(4px)" }}
+      onClick={e => { if (e.target === e.currentTarget) onClose(); }}>
+      <div className="bg-white rounded-2xl w-full max-w-lg shadow-2xl" onClick={e => e.stopPropagation()}>
+        <div style={{ height: 4, background: "#f59e0b" }} />
+        <div className="p-7">
+          <div className="flex items-center justify-between mb-6">
+            <h2 style={{ fontFamily: "'Inter',sans-serif", fontWeight: 700, fontSize: "1rem", color: INK }}>Редактировать новость</h2>
+            <button onClick={onClose} className="p-1.5 rounded-full hover:bg-gray-100" style={{ color: MUT }}><Icon name="X" size={16} /></button>
+          </div>
+          <div className="space-y-4">
+            <div>
+              <label className="block text-xs font-semibold mb-1.5 uppercase tracking-wider" style={{ color: MUT, fontFamily: "'Inter',sans-serif" }}>Категория</label>
+              <select className="field" value={category} onChange={e => setCategory(e.target.value)}>
+                {["Компания", "Проекты", "Тендеры", "Отрасль"].map(c => <option key={c}>{c}</option>)}
+              </select>
+            </div>
+            <div>
+              <label className="block text-xs font-semibold mb-1.5 uppercase tracking-wider" style={{ color: MUT, fontFamily: "'Inter',sans-serif" }}>Заголовок</label>
+              <input className="field" value={title} onChange={e => setTitle(e.target.value)} />
+            </div>
+            <div>
+              <label className="block text-xs font-semibold mb-1.5 uppercase tracking-wider" style={{ color: MUT, fontFamily: "'Inter',sans-serif" }}>Текст</label>
+              <textarea className="field" rows={5} value={text} onChange={e => setText(e.target.value)} style={{ resize: "vertical" }} />
+            </div>
+            <div className="flex gap-2">
+              <button onClick={() => { onSave({ ...item, title, full: text, text: text.slice(0, 180), category }); onClose(); }} className="btn-primary flex-1 justify-center">Сохранить</button>
+              <button onClick={onClose} className="btn-outline px-4">Отмена</button>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+// ─── AddProjectModal ──────────────────────────────────────────────────────────
+function AddProjectModal({ onClose, onAdd, existingTypes }: { onClose: () => void; onAdd: (p: ProjectItem) => void; existingTypes: string[] }) {
+  const [title, setTitle] = useState("");
+  const [type, setType] = useState(existingTypes[0] || "");
+  const [customType, setCustomType] = useState("");
+  const [useCustom, setUseCustom] = useState(false);
+  const [year, setYear] = useState("");
+  const [status, setStatus] = useState<"Сдан" | "В процессе">("Сдан");
+  const [imgFile, setImgFile] = useState("");
+  const [errors, setErrors] = useState<Record<string, string>>({});
+
+  const handle = () => {
+    const errs: Record<string, string> = {};
+    if (!title.trim()) errs.title = "Введите наименование";
+    if (useCustom && !customType.trim()) errs.type = "Введите категорию";
+    if (Object.keys(errs).length) { setErrors(errs); return; }
+    onAdd({ id: Date.now(), title, type: useCustom ? customType : type, year: year ? Number(year) : undefined, img: imgFile || PROJECTS_INITIAL[0].img, status });
+    onClose();
+  };
+
+  return (
+    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 overflow-y-auto" style={{ background: "rgba(10,15,30,.6)", backdropFilter: "blur(4px)" }}
+      onClick={e => { if (e.target === e.currentTarget) onClose(); }}>
+      <div className="bg-white rounded-2xl w-full max-w-lg shadow-2xl" onClick={e => e.stopPropagation()}>
+        <div style={{ height: 4, background: "#8b5cf6" }} />
+        <div className="p-7">
+          <div className="flex items-center justify-between mb-6">
+            <h2 style={{ fontFamily: "'Inter',sans-serif", fontWeight: 700, fontSize: "1rem", color: INK }}>Новый проект</h2>
+            <button onClick={onClose} className="p-1.5 rounded-full hover:bg-gray-100" style={{ color: MUT }}><Icon name="X" size={16} /></button>
+          </div>
+          <div className="space-y-4">
+            <div>
+              <label className="block text-xs font-semibold mb-1.5 uppercase tracking-wider" style={{ color: MUT, fontFamily: "'Inter',sans-serif" }}>Категория</label>
+              <div className="flex gap-2 mb-2">
+                <button onClick={() => setUseCustom(false)} className="px-3 py-1.5 rounded-lg text-xs font-semibold transition-all"
+                  style={{ background: !useCustom ? INK : "#F7F8FC", color: !useCustom ? "#fff" : MUT, fontFamily: "'Inter',sans-serif" }}>Существующая</button>
+                <button onClick={() => setUseCustom(true)} className="px-3 py-1.5 rounded-lg text-xs font-semibold transition-all"
+                  style={{ background: useCustom ? INK : "#F7F8FC", color: useCustom ? "#fff" : MUT, fontFamily: "'Inter',sans-serif" }}>Новая категория</button>
+              </div>
+              {!useCustom
+                ? <select className="field" value={type} onChange={e => setType(e.target.value)}>
+                    {existingTypes.map(t => <option key={t}>{t}</option>)}
+                  </select>
+                : <input className="field" value={customType} onChange={e => { setCustomType(e.target.value); setErrors(p => ({ ...p, type: "" })); }} placeholder="Название новой категории"
+                    style={{ borderColor: errors.type ? "#ef4444" : undefined }} />
+              }
+              {errors.type && <p style={{ color: "#ef4444", fontSize: ".75rem", marginTop: 4 }}>{errors.type}</p>}
+            </div>
+            <div>
+              <label className="block text-xs font-semibold mb-1.5 uppercase tracking-wider" style={{ color: MUT, fontFamily: "'Inter',sans-serif" }}>Наименование проекта *</label>
+              <input className="field" value={title} onChange={e => { setTitle(e.target.value); setErrors(p => ({ ...p, title: "" })); }} placeholder="Название объекта"
+                style={{ borderColor: errors.title ? "#ef4444" : undefined }} />
+              {errors.title && <p style={{ color: "#ef4444", fontSize: ".75rem", marginTop: 4 }}>{errors.title}</p>}
+            </div>
+            <div className="grid grid-cols-2 gap-4">
+              <div>
+                <label className="block text-xs font-semibold mb-1.5 uppercase tracking-wider" style={{ color: MUT, fontFamily: "'Inter',sans-serif" }}>Год окончания</label>
+                <input className="field" type="number" value={year} onChange={e => setYear(e.target.value)} placeholder="2026 (необязательно)" />
+              </div>
+              <div>
+                <label className="block text-xs font-semibold mb-1.5 uppercase tracking-wider" style={{ color: MUT, fontFamily: "'Inter',sans-serif" }}>Статус</label>
+                <select className="field" value={status} onChange={e => setStatus(e.target.value as "Сдан" | "В процессе")}>
+                  <option value="Сдан">Сдан</option>
+                  <option value="В процессе">В процессе</option>
+                </select>
+              </div>
+            </div>
+            <div>
+              <label className="block text-xs font-semibold mb-1.5 uppercase tracking-wider" style={{ color: MUT, fontFamily: "'Inter',sans-serif" }}>Фото для баннера</label>
+              <label className="flex items-center gap-3 p-3.5 rounded-xl cursor-pointer" style={{ border: "1.5px dashed #CBD5E1" }}>
+                <Icon name="Image" size={16} style={{ color: MUT }} />
+                <span style={{ fontSize: ".85rem", color: imgFile ? INK : MUT }}>{imgFile || "Прикрепить изображение (JPG, PNG)"}</span>
+                <input type="file" accept="image/*" className="hidden" onChange={e => setImgFile(e.target.files?.[0]?.name || "")} />
+              </label>
+            </div>
+            <button onClick={handle} className="btn-primary w-full justify-center">Опубликовать проект <Icon name="Send" size={14} /></button>
           </div>
         </div>
       </div>
@@ -683,7 +928,7 @@ function ProjectsSection({ adminBar }: { adminBar?: React.ReactNode } = {}) {
 }
 
 // ─── News Modal ────────────────────────────────────────────────────────────────
-function NewsModal({ news, onClose }: { news: typeof NEWS[0]; onClose: () => void }) {
+function NewsModal({ news, onClose }: { news: typeof NEWS_INITIAL[0]; onClose: () => void }) {
   return (
     <div className="fixed inset-0 z-50 flex items-start justify-center p-4 pt-16 overflow-y-auto" style={{ background: "rgba(10,15,30,.6)", backdropFilter: "blur(4px)" }}
       onClick={e => { if (e.target === e.currentTarget) onClose(); }}>
@@ -714,23 +959,40 @@ function NewsModal({ news, onClose }: { news: typeof NEWS[0]; onClose: () => voi
 }
 
 // ─── News ─────────────────────────────────────────────────────────────────────
-function NewsSection({ adminBar, news: newsProp }: { adminBar?: React.ReactNode; news?: NewsItem[] } = {}) {
+function NewsSection({ adminBar, news: newsProp, setNews, isAdmin }: {
+  adminBar?: React.ReactNode; news?: NewsItem[];
+  setNews?: React.Dispatch<React.SetStateAction<NewsItem[]>>; isAdmin?: boolean;
+} = {}) {
   const news = newsProp ?? NEWS_INITIAL;
   const [selected, setSelected] = useState<NewsItem | null>(null);
+  const [editItem, setEditItem] = useState<NewsItem | null>(null);
+  const [addNews, setAddNews] = useState(false);
+  const [toast, setToast] = useState("");
+  const [deleteId, setDeleteId] = useState<number | null>(null);
+
+  const handleAdd = (n: NewsItem) => { setNews?.(p => [n, ...p]); setToast("Новость успешно опубликована!"); };
+  const handleEdit = (n: NewsItem) => { setNews?.(p => p.map(x => x.id === n.id ? n : x)); setToast("Новость обновлена!"); };
+  const handleDelete = (id: number) => { setNews?.(p => p.filter(x => x.id !== id)); setDeleteId(null); };
 
   return (
     <div>
+      {toast && <Toast message={toast} onClose={() => setToast("")} />}
       {adminBar}
       <PageHeader label="Пресс-центр" title="Новости" sub="Актуальные события компании и отрасли." compact={!!adminBar} />
       <div className="py-16 bg-white">
         <div className="max-w-7xl mx-auto px-6">
+          {isAdmin && (
+            <div className="flex justify-end mb-6">
+              <button onClick={() => setAddNews(true)} className="btn-primary text-sm"><Icon name="Plus" size={14} /> Добавить новость</button>
+            </div>
+          )}
           <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
             <div className="lg:col-span-2 space-y-4">
               {news.filter(n => !n.draft).map(n => (
-                <div key={n.id} onClick={() => setSelected(n)} className="card-lift rounded-2xl overflow-hidden group cursor-pointer" style={{ border: "1px solid #E4E8F0" }}>
+                <div key={n.id} className="card-lift rounded-2xl overflow-hidden group" style={{ border: "1px solid #E4E8F0" }}>
                   <div className="flex">
                     <div style={{ width: 3, background: B, flexShrink: 0 }} />
-                    <div className="p-6">
+                    <div className="p-6 flex-1 cursor-pointer" onClick={() => setSelected(n)}>
                       <div className="flex items-center gap-2 mb-3">
                         <span className="chip">{n.category}</span>
                         <span style={{ fontSize: ".72rem", color: MUT }}>{n.date}</span>
@@ -741,6 +1003,16 @@ function NewsSection({ adminBar, news: newsProp }: { adminBar?: React.ReactNode;
                         Читать далее <Icon name="ArrowRight" size={12} />
                       </div>
                     </div>
+                    {isAdmin && (
+                      <div className="flex flex-col gap-1 p-3 border-l" style={{ borderColor: "#E4E8F0" }}>
+                        <button onClick={() => setEditItem(n)} className="p-2 rounded-lg hover:bg-blue-50 transition-colors" title="Редактировать">
+                          <Icon name="Pencil" size={14} style={{ color: B }} />
+                        </button>
+                        <button onClick={() => setDeleteId(n.id)} className="p-2 rounded-lg hover:bg-red-50 transition-colors" title="Удалить">
+                          <Icon name="Trash2" size={14} style={{ color: "#ef4444" }} />
+                        </button>
+                      </div>
+                    )}
                   </div>
                 </div>
               ))}
@@ -759,6 +1031,23 @@ function NewsSection({ adminBar, news: newsProp }: { adminBar?: React.ReactNode;
         </div>
       </div>
       {selected && <NewsModal news={selected} onClose={() => setSelected(null)} />}
+      {editItem && <EditNewsModal item={editItem} onClose={() => setEditItem(null)} onSave={handleEdit} />}
+      {addNews && <AddNewsModal onClose={() => setAddNews(false)} onAdd={handleAdd} />}
+      {deleteId !== null && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4" style={{ background: "rgba(10,15,30,.6)", backdropFilter: "blur(4px)" }}>
+          <div className="bg-white rounded-2xl w-full max-w-sm p-7 shadow-2xl text-center">
+            <div className="w-14 h-14 rounded-full flex items-center justify-center mx-auto mb-4" style={{ background: "rgba(239,68,68,.1)" }}>
+              <Icon name="Trash2" size={24} style={{ color: "#ef4444" }} />
+            </div>
+            <h3 style={{ fontFamily: "'Inter',sans-serif", fontWeight: 700, fontSize: "1rem", color: INK, marginBottom: 8 }}>Удалить новость?</h3>
+            <p style={{ fontSize: ".85rem", color: MUT, marginBottom: 20 }}>Это действие нельзя отменить.</p>
+            <div className="flex gap-3">
+              <button onClick={() => handleDelete(deleteId)} className="flex-1 py-2.5 rounded-xl font-semibold text-sm text-white" style={{ background: "#ef4444", fontFamily: "'Inter',sans-serif" }}>Удалить</button>
+              <button onClick={() => setDeleteId(null)} className="flex-1 py-2.5 rounded-xl font-semibold text-sm btn-outline">Отмена</button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
@@ -1738,7 +2027,7 @@ function AddUserModal({ onClose, onAdd }: { onClose: () => void; onAdd: (u: Admi
   );
 }
 
-function AddDocModal({ onClose }: { onClose: () => void }) {
+function AddDocModal({ onClose, onAdd }: { onClose: () => void; onAdd?: () => void }) {
   const existingSections = DOCS_SECTIONS.map(s => s.title);
   const [useExisting, setUseExisting] = useState(true);
   const [selectedSection, setSelectedSection] = useState(existingSections[0]);
@@ -1753,6 +2042,7 @@ function AddDocModal({ onClose }: { onClose: () => void }) {
     if (!useExisting && !newSection.trim()) errs.newSection = "Введите название нового раздела";
     if (!fileName) errs.file = "Прикрепите файл";
     if (Object.keys(errs).length) { setErrors(errs); return; }
+    onAdd?.();
     onClose();
   };
 
@@ -2257,14 +2547,22 @@ function AdminCabinet({ user, setUser, onBack, onLogout, roleLabel }: {
 }
 
 // ─── Superadmin Dashboard ─────────────────────────────────────────────────────
-function SuperAdminDashboard({ user, setUser, onLogout, go, cfg, onCfgSave, initialView, onViewChange }: {
+function SuperAdminDashboard({ user, setUser, onLogout, go, cfg, onCfgSave, initialView, onViewChange, sharedNews, setSharedNews }: {
   user: User; setUser: (u: User) => void; onLogout: () => void; go: (s: Section) => void;
   cfg: SiteConfig; onCfgSave: (c: SiteConfig) => void;
   initialView?: "dashboard" | "cabinet"; onViewChange?: () => void;
+  sharedNews?: NewsItem[]; setSharedNews?: React.Dispatch<React.SetStateAction<NewsItem[]>>;
 }) {
   const [view, setView] = useState<"dashboard" | "users" | "settings" | "cabinet">(initialView || "dashboard");
   const [users, setUsers] = useState<AdminUser[]>(USERS_INITIAL);
-  const [news, setNews] = useState<NewsItem[]>(NEWS_INITIAL);
+  const [news, setNews] = useState<NewsItem[]>(sharedNews ?? NEWS_INITIAL);
+  const [toast, setToast] = useState("");
+
+  useEffect(() => { if (sharedNews) setNews(sharedNews); }, [sharedNews]);
+  const handleSetNews: React.Dispatch<React.SetStateAction<NewsItem[]>> = (action) => {
+    setNews(action);
+    setSharedNews?.(action);
+  };
 
   useEffect(() => {
     if (initialView && initialView !== "dashboard") {
@@ -2406,19 +2704,26 @@ function SuperAdminDashboard({ user, setUser, onLogout, go, cfg, onCfgSave, init
         </div>
       </div>
 
-      {addTender && <AddTenderModal onClose={() => setAddTender(false)} onAdd={() => {}} />}
-      {addUser && <AddUserModal onClose={() => setAddUser(false)} onAdd={u => setUsers(p => [...p, u])} />}
-      {addDoc && <AddDocModal onClose={() => setAddDoc(false)} />}
+      {addTender && <AddTenderModal onClose={() => setAddTender(false)} onAdd={() => { setToast("Тендер успешно создан!"); }} />}
+      {addUser && <AddUserModal onClose={() => setAddUser(false)} onAdd={u => { setUsers(p => [...p, u]); setToast("Пользователь добавлен!"); }} />}
+      {addDoc && <AddDocModal onClose={() => setAddDoc(false)} onAdd={() => setToast("Документ опубликован!")} />}
+      {toast && <Toast message={toast} onClose={() => setToast("")} />}
     </div>
   );
 }
 
 // ─── ContentAdmin Dashboard ───────────────────────────────────────────────────
-function ContentAdminDashboard({ user, setUser, onLogout, initialView, onViewChange }: {
+function ContentAdminDashboard({ user, setUser, onLogout, initialView, onViewChange, news, setNews, projects, setProjects, go }: {
   user: User; setUser: (u: User) => void; onLogout: () => void;
   initialView?: "dashboard" | "cabinet"; onViewChange?: () => void;
+  news: NewsItem[]; setNews: React.Dispatch<React.SetStateAction<NewsItem[]>>;
+  projects: ProjectItem[]; setProjects: React.Dispatch<React.SetStateAction<ProjectItem[]>>;
+  go: (s: Section) => void;
 }) {
   const [view, setView] = useState<"dashboard" | "cabinet">(initialView || "dashboard");
+  const [addNews, setAddNews] = useState(false);
+  const [addProject, setAddProject] = useState(false);
+  const [toast, setToast] = useState("");
 
   useEffect(() => {
     if (initialView && initialView !== "dashboard") {
@@ -2427,25 +2732,22 @@ function ContentAdminDashboard({ user, setUser, onLogout, initialView, onViewCha
     }
   }, [initialView]);
 
+  const recentNews = [...news].sort((a, b) => b.id - a.id).slice(0, 5);
+
   const statCards = [
-    { icon: "Newspaper", label: "Новости", value: 12, sub: "+3 за неделю", color: "#0066FF" },
-    { icon: "HardHat", label: "Проекты", value: 8, sub: "+2 за месяц", color: "#8b5cf6" },
-    { icon: "FileText", label: "Тендеры", value: 5, sub: "+1 за неделю", color: "#f59e0b" },
+    { icon: "Newspaper", label: "Новости", value: news.length, sub: `Всего: ${news.length}`, color: "#0066FF", onClick: () => go("news") },
+    { icon: "HardHat", label: "Проекты", value: projects.length, sub: `Всего: ${projects.length}`, color: "#8b5cf6", onClick: () => go("projects") },
   ];
-  const recentNews = [
-    { title: "Завершено строительство моста", date: "15.04.2026", draft: false },
-    { title: "Получен сертификат ISO 9001", date: "10.04.2026", draft: false },
-    { title: "Новый проект метро (черновик)", date: "—", draft: true, own: true },
-  ];
-  const actions = [
-    { icon: "Plus", label: "Добавить новость" },
-    { icon: "Plus", label: "Добавить проект" },
-  ];
+
+  const handleAddNews = (n: NewsItem) => { setNews(p => [n, ...p]); setToast("Новость успешно опубликована!"); };
+  const handleAddProject = (p: ProjectItem) => { setProjects(prev => [p, ...prev]); setToast("Проект успешно опубликован!"); };
 
   if (view === "cabinet") return <AdminCabinet user={user} setUser={setUser} onBack={() => setView("dashboard")} onLogout={onLogout} roleLabel="Контент-администратор" />;
 
   return (
     <div style={{ background: "#F7F8FC", minHeight: "100vh" }}>
+      {toast && <Toast message={toast} onClose={() => setToast("")} />}
+
       {/* Top bar */}
       <div style={{ background: INK, borderBottom: "1px solid rgba(255,255,255,.06)" }} className="px-6 py-4">
         <div className="max-w-7xl mx-auto flex items-center justify-between">
@@ -2471,67 +2773,59 @@ function ContentAdminDashboard({ user, setUser, onLogout, initialView, onViewCha
 
       <div className="max-w-7xl mx-auto px-6 py-8 space-y-6">
         {/* Stat cards */}
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           {statCards.map((s, i) => (
-            <div key={i} className="bg-white rounded-2xl p-5 card-lift" style={{ border: "1px solid #E4E8F0" }}>
+            <button key={i} onClick={s.onClick} className="bg-white rounded-2xl p-5 card-lift text-left" style={{ border: "1px solid #E4E8F0" }}>
               <div style={{ width: 40, height: 40, borderRadius: 10, background: s.color + "18", marginBottom: 12 }} className="flex items-center justify-center">
                 <Icon name={s.icon as "Users"} size={20} style={{ color: s.color }} />
               </div>
               <div style={{ fontFamily: "'Inter',sans-serif", fontWeight: 800, fontSize: "1.8rem", color: INK, letterSpacing: "-.03em", lineHeight: 1 }}>{s.value}</div>
               <div style={{ fontSize: ".8rem", fontWeight: 600, color: INK, fontFamily: "'Inter',sans-serif", marginTop: 4 }}>{s.label}</div>
               <div style={{ fontSize: ".72rem", color: s.color, marginTop: 3 }}>{s.sub}</div>
-            </div>
+            </button>
           ))}
-        </div>
-
-        {/* Badges */}
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-          <div className="bg-white rounded-2xl px-5 py-4 flex items-center gap-3" style={{ border: "1px solid #E4E8F0" }}>
-            <Icon name="FileEdit" size={18} style={{ color: "#f59e0b" }} />
-            <span style={{ fontFamily: "'Inter',sans-serif", fontWeight: 600, fontSize: ".88rem", color: INK }}>Черновики: <span style={{ color: "#f59e0b" }}>2</span></span>
-          </div>
-          <div className="bg-white rounded-2xl px-5 py-4 flex items-center gap-3" style={{ border: "1px solid #E4E8F0" }}>
-            <Icon name="Clock" size={18} style={{ color: "#ef4444" }} />
-            <span style={{ fontFamily: "'Inter',sans-serif", fontWeight: 600, fontSize: ".88rem", color: INK }}>Скоро закрываются тендеры: <span style={{ color: "#ef4444" }}>3</span></span>
-          </div>
         </div>
 
         {/* News table */}
         <div className="bg-white rounded-2xl p-5" style={{ border: "1px solid #E4E8F0" }}>
-          <div style={{ fontFamily: "'Inter',sans-serif", fontWeight: 700, fontSize: ".88rem", color: INK, marginBottom: 14, letterSpacing: ".04em", textTransform: "uppercase" }}>Последние новости</div>
-          <div className="space-y-3">
-            {recentNews.map((n, i) => (
-              <div key={i} className="flex items-center gap-3">
-                <div style={{ width: 6, height: 6, borderRadius: "50%", background: n.draft ? "#f59e0b" : B, flexShrink: 0 }} />
-                <span style={{ fontSize: ".85rem", color: INK, flex: 1 }}>{n.title}</span>
-                {n.draft ? (
-                  <div className="flex items-center gap-2">
-                    {n.own && <span style={{ fontSize: ".7rem", color: MUT }}>← только вы видите</span>}
-                    <span style={{ fontSize: ".7rem", background: "rgba(245,158,11,.1)", color: "#f59e0b", padding: "2px 8px", borderRadius: 999, fontWeight: 600 }}>черновик</span>
-                  </div>
-                ) : (
-                  <span style={{ fontSize: ".72rem", color: MUT }}>{n.date}</span>
-                )}
-              </div>
-            ))}
+          <div className="flex items-center justify-between mb-3">
+            <div style={{ fontFamily: "'Inter',sans-serif", fontWeight: 700, fontSize: ".88rem", color: INK, letterSpacing: ".04em", textTransform: "uppercase" }}>Последние новости</div>
+            <button onClick={() => go("news")} style={{ fontSize: ".72rem", color: B, fontFamily: "'Inter',sans-serif", fontWeight: 600 }}>Все →</button>
           </div>
+          {recentNews.length === 0
+            ? <p style={{ fontSize: ".85rem", color: MUT }}>Новостей пока нет</p>
+            : <div className="space-y-3">
+                {recentNews.map((n) => (
+                  <div key={n.id} className="flex items-center gap-3">
+                    <div style={{ width: 6, height: 6, borderRadius: "50%", background: B, flexShrink: 0 }} />
+                    <span style={{ fontSize: ".85rem", color: INK, flex: 1 }} className="truncate">{n.title}</span>
+                    <span style={{ fontSize: ".72rem", color: MUT, flexShrink: 0 }}>{n.date}</span>
+                  </div>
+                ))}
+              </div>
+          }
         </div>
 
         {/* Actions */}
         <div className="bg-white rounded-2xl p-5" style={{ border: "1px solid #E4E8F0" }}>
           <div style={{ fontFamily: "'Inter',sans-serif", fontWeight: 700, fontSize: ".88rem", color: INK, marginBottom: 14, letterSpacing: ".04em", textTransform: "uppercase" }}>Быстрые действия</div>
           <div className="flex flex-wrap gap-3">
-            {actions.map((a, i) => (
-              <button key={i} className="flex items-center gap-2 px-4 py-2 rounded-xl transition-all"
-                style={{ background: "#F7F8FC", border: "1.5px solid #E4E8F0", fontSize: ".82rem", fontFamily: "'Inter',sans-serif", fontWeight: 600, color: INK }}
-                onMouseEnter={e => { (e.currentTarget as HTMLElement).style.borderColor = B; (e.currentTarget as HTMLElement).style.color = B; }}
-                onMouseLeave={e => { (e.currentTarget as HTMLElement).style.borderColor = "#E4E8F0"; (e.currentTarget as HTMLElement).style.color = INK; }}>
+            {[
+              { icon: "Newspaper", label: "Добавить новость", onClick: () => setAddNews(true), color: "#0066FF" },
+              { icon: "HardHat", label: "Добавить проект", onClick: () => setAddProject(true), color: "#8b5cf6" },
+            ].map((a, i) => (
+              <button key={i} onClick={a.onClick} className="flex items-center gap-2 px-4 py-2.5 rounded-xl transition-all"
+                style={{ background: a.color + "10", border: `1.5px solid ${a.color}30`, fontSize: ".82rem", fontFamily: "'Inter',sans-serif", fontWeight: 600, color: a.color }}>
                 <Icon name={a.icon as "Plus"} size={14} /> {a.label}
               </button>
             ))}
           </div>
         </div>
       </div>
+
+      {addNews && <AddNewsModal onClose={() => setAddNews(false)} onAdd={handleAddNews} />}
+      {addProject && <AddProjectModal onClose={() => setAddProject(false)} onAdd={handleAddProject}
+        existingTypes={[...new Set(projects.map(p => p.type))]} />}
     </div>
   );
 }
@@ -2599,6 +2893,8 @@ export default function Index() {
   const [mob, setMob] = useState(false);
   const [cfg, setCfg] = useState<SiteConfig>(DEFAULT_CONFIG);
   const [adminInitialView, setAdminInitialView] = useState<"dashboard" | "cabinet">("dashboard");
+  const [news, setNews] = useState<NewsItem[]>(NEWS_INITIAL);
+  const [projects, setProjects] = useState<ProjectItem[]>(PROJECTS_INITIAL);
   const [messages, setMessages] = useState<Message[]>([
     { id: 1, date: "15 апреля 2026", subject: "Строительный проект", text: "Добрый день! Интересует возможность сотрудничества по строительству объекта в Подмосковье. Прошу предоставить информацию о ваших услугах.", reply: "Добрый день! Спасибо за обращение. Мы готовы рассмотреть ваш проект. Наш менеджер свяжется с вами в течение одного рабочего дня.", replyDate: "16 апреля 2026" },
     { id: 2, date: "10 апреля 2026", subject: "Партнёрство", text: "Здравствуйте, хотели бы обсудить возможность партнёрства в рамках тендера на строительство дороги." },
@@ -2635,24 +2931,36 @@ export default function Index() {
       <div>
         {isPublicSection ? (
           <main>
-            {section === "news"     && <NewsSection adminBar={superAdminBar} />}
-            {section === "projects" && <ProjectsSection adminBar={superAdminBar} />}
+            {section === "news"     && <NewsSection adminBar={superAdminBar} news={news} setNews={setNews} isAdmin />}
+            {section === "projects" && <ProjectsSection adminBar={superAdminBar} projects={projects} setProjects={setProjects} isAdmin />}
             {section === "tenders"  && <TendersSection user={user} onAddApp={handleAddApp} go={go} isAdmin adminBar={superAdminBar} />}
           </main>
         ) : (
           <SuperAdminDashboard user={user} setUser={setUser as (u: User) => void} onLogout={logout} go={go} cfg={cfg} onCfgSave={setCfg}
-            initialView={adminInitialView} onViewChange={() => setAdminInitialView("dashboard")} />
+            initialView={adminInitialView} onViewChange={() => setAdminInitialView("dashboard")}
+            sharedNews={news} setSharedNews={setNews} />
         )}
       </div>
     );
   }
 
-  // Контент-админ видит дашборд
+  // Контент-админ видит дашборд или публичные страницы
   if (user?.role === "contentadmin") {
+    const adminSections: Section[] = ["news", "projects"];
+    const isPublicSection = adminSections.includes(section);
+    const goToCabinet = () => { setAdminInitialView("cabinet"); go("home"); };
+    const contentAdminBar = <AdminBackBar go={go} user={user} onCabinet={goToCabinet} onLogout={logout} />;
+    if (isPublicSection) return (
+      <div>
+        {section === "news"     && <NewsSection adminBar={contentAdminBar} news={news} setNews={setNews} isAdmin />}
+        {section === "projects" && <ProjectsSection adminBar={contentAdminBar} projects={projects} setProjects={setProjects} isAdmin />}
+      </div>
+    );
     return (
       <div>
         <ContentAdminDashboard user={user} setUser={setUser as (u: User) => void} onLogout={logout}
-          initialView={adminInitialView} onViewChange={() => setAdminInitialView("dashboard")} />
+          initialView={adminInitialView} onViewChange={() => setAdminInitialView("dashboard")}
+          news={news} setNews={setNews} projects={projects} setProjects={setProjects} go={go} />
       </div>
     );
   }
@@ -2661,10 +2969,10 @@ export default function Index() {
     <div>
       <Header active={section} go={go} user={user} onLogin={() => setShowLogin(true)} onLogout={logout} mob={mob} setMob={setMob} cfg={cfg} />
       <main>
-        {section === "home"     && <HomeSection go={go} />}
+        {section === "home"     && <HomeSection go={go} news={news} />}
         {section === "about"    && <AboutSection />}
-        {section === "projects" && <ProjectsSection />}
-        {section === "news"     && <NewsSection />}
+        {section === "projects" && <ProjectsSection projects={projects} />}
+        {section === "news"     && <NewsSection news={news} />}
         {section === "tenders"  && <TendersSection user={user} onAddApp={handleAddApp} go={go} />}
         {section === "docs"     && <DocsSection user={user} />}
         {section === "contacts" && <ContactsSection user={user} onLogin={() => setShowLogin(true)} onSend={handleSendMessage} />}
