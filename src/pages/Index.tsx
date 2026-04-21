@@ -33,7 +33,10 @@ const PROJECTS = [
   { id: 5, title: "Транспортная система Мнёвниковской поймы", type: "Дорожное строительство", year: 2026, area: "11,7 км", img: "https://cdn.poehali.dev/projects/232d353a-884c-46d3-ba1a-b2a0e421060f/files/194d7c9e-67dc-4f48-a1b5-274d467f3c76.jpg", status: "В процессе" },
   { id: 4, title: "Инженерная инфраструктура АДЦ «Коммунарка»", type: "Инженерная инфраструктура", year: 2023, area: "18 км", img: "https://cdn.poehali.dev/projects/232d353a-884c-46d3-ba1a-b2a0e421060f/files/32c14947-3147-4e77-8f6d-a8717f8e0d95.jpg", status: "Сдан" },
 ];
-const NEWS = [
+interface NewsItem {
+  id: number; date: string; category: string; title: string; text: string; full: string; draft?: boolean;
+}
+const NEWS_INITIAL: NewsItem[] = [
   { id: 1, date: "18 апреля 2026", category: "Компания", title: "АО УРСТ вошло в топ-10 строительных компаний России", text: "По итогам ежегодного рейтинга отраслевого портала, компания заняла 7-е место среди крупнейших строительных организаций страны.", full: "По итогам ежегодного рейтинга отраслевого портала «СтройРейтинг», АО «УРСТ» заняло 7-е место среди крупнейших строительных организаций России по объёму выполненных работ за 2025 год.\n\nВ рейтинге оцениваются финансовая устойчивость, количество завершённых объектов, соблюдение сроков и качество работ. В этом году компания поднялась на три позиции по сравнению с прошлым годом.\n\nГенеральный директор АО «УРСТ» отметил, что данное достижение — результат слаженной работы всего коллектива и чёткого следования стратегии устойчивого развития. В ближайшие годы компания планирует войти в топ-5 ведущих строительных организаций страны, расширив портфель проектов в сфере транспортной и инженерной инфраструктуры." },
   { id: 2, date: "10 апреля 2026", category: "Проекты", title: "Начало строительства нового участка метро на севере города", text: "На этой неделе официально стартовал один из крупнейших транспортных проектов этого года — участок метро протяжённостью 4.2 км.", full: "На этой неделе официально стартовал один из крупнейших транспортных проектов текущего года — строительство нового участка метро на севере Москвы протяжённостью 4.2 км с тремя новыми станциями.\n\nАО «УРСТ» выступает генеральным подрядчиком по тоннельным и отделочным работам. Контракт предусматривает строительство перегонных тоннелей методом щитовой проходки, возведение станционных комплексов и монтаж инженерных систем.\n\nСрок завершения работ — IV квартал 2027 года. Общий объём финансирования составляет порядка 18 млрд рублей. На объекте будет задействовано более 800 специалистов компании." },
   { id: 3, date: "2 апреля 2026", category: "Тендеры", title: "Победа в государственном тендере на строительство дороги", text: "Наша компания одержала победу в конкурсе на возведение участка автомагистрали. Стоимость контракта — 2.1 млрд рублей.", full: "АО «УРСТ» одержало победу в открытом государственном конкурсе на строительство участка автомагистрали протяжённостью 12.4 км в Подмосковье. Стоимость контракта составила 2.1 млрд рублей.\n\nВ рамках проекта планируется возведение двухполосного шоссе с расширением до четырёх полос, строительство двух транспортных развязок, двух путепроводов и системы ливневой канализации. Дорога свяжет два крупных жилых массива и снизит транспортную нагрузку на существующие артерии.\n\nСрок выполнения работ — 24 месяца с момента подписания контракта. Проектная документация уже разработана и прошла государственную экспертизу." },
@@ -711,8 +714,9 @@ function NewsModal({ news, onClose }: { news: typeof NEWS[0]; onClose: () => voi
 }
 
 // ─── News ─────────────────────────────────────────────────────────────────────
-function NewsSection({ adminBar }: { adminBar?: React.ReactNode } = {}) {
-  const [selected, setSelected] = useState<typeof NEWS[0] | null>(null);
+function NewsSection({ adminBar, news: newsProp }: { adminBar?: React.ReactNode; news?: NewsItem[] } = {}) {
+  const news = newsProp ?? NEWS_INITIAL;
+  const [selected, setSelected] = useState<NewsItem | null>(null);
 
   return (
     <div>
@@ -722,7 +726,7 @@ function NewsSection({ adminBar }: { adminBar?: React.ReactNode } = {}) {
         <div className="max-w-7xl mx-auto px-6">
           <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
             <div className="lg:col-span-2 space-y-4">
-              {NEWS.map(n => (
+              {news.filter(n => !n.draft).map(n => (
                 <div key={n.id} onClick={() => setSelected(n)} className="card-lift rounded-2xl overflow-hidden group cursor-pointer" style={{ border: "1px solid #E4E8F0" }}>
                   <div className="flex">
                     <div style={{ width: 3, background: B, flexShrink: 0 }} />
@@ -2260,6 +2264,7 @@ function SuperAdminDashboard({ user, setUser, onLogout, go, cfg, onCfgSave, init
 }) {
   const [view, setView] = useState<"dashboard" | "users" | "settings" | "cabinet">(initialView || "dashboard");
   const [users, setUsers] = useState<AdminUser[]>(USERS_INITIAL);
+  const [news, setNews] = useState<NewsItem[]>(NEWS_INITIAL);
 
   useEffect(() => {
     if (initialView && initialView !== "dashboard") {
@@ -2271,18 +2276,20 @@ function SuperAdminDashboard({ user, setUser, onLogout, go, cfg, onCfgSave, init
   const [addUser, setAddUser] = useState(false);
   const [addDoc, setAddDoc] = useState(false);
 
+  const publishedNews = news.filter(n => !n.draft);
+  const draftNews = news.filter(n => n.draft);
+
   const statCards = [
-    { icon: "Newspaper", label: "Новости за неделю", value: 3, sub: "Всего: 12", color: "#0066FF", onClick: () => go("news") },
+    { icon: "Newspaper", label: "Новости", value: publishedNews.length, sub: `Черновиков: ${draftNews.length}`, color: "#0066FF", onClick: () => go("news") },
     { icon: "HardHat", label: "Проекты", value: 8, sub: "+2 за месяц", color: "#8b5cf6", onClick: () => go("projects") },
     { icon: "FileText", label: "Тендеры", value: 5, sub: "+1 за неделю", color: "#f59e0b", onClick: () => go("tenders") },
     { icon: "Users", label: "Пользователи", value: users.length, sub: `Всего: ${users.length}`, color: "#10b981", onClick: () => setView("users") },
   ];
 
-  const recentNews = [
-    { title: "Завершено строительство моста", date: "15.04.2026", draft: false },
-    { title: "Получен сертификат ISO 9001", date: "10.04.2026", draft: false },
-    { title: "Новый проект метро", date: "—", draft: true },
-  ];
+  const recentNews = [...news]
+    .sort((a, b) => b.id - a.id)
+    .slice(0, 5)
+    .map(n => ({ title: n.title, date: n.date, draft: !!n.draft }));
 
   const recentUsers = [...users]
     .sort((a, b) => b.id - a.id)
@@ -2347,16 +2354,19 @@ function SuperAdminDashboard({ user, setUser, onLogout, go, cfg, onCfgSave, init
         {/* Tables row */}
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           <div className="bg-white rounded-2xl p-5" style={{ border: "1px solid #E4E8F0" }}>
-            <div style={{ fontFamily: "'Inter',sans-serif", fontWeight: 700, fontSize: ".88rem", color: INK, marginBottom: 14, letterSpacing: ".04em", textTransform: "uppercase" }}>Последние новости</div>
+            <div className="flex items-center justify-between mb-3">
+              <div style={{ fontFamily: "'Inter',sans-serif", fontWeight: 700, fontSize: ".88rem", color: INK, letterSpacing: ".04em", textTransform: "uppercase" }}>Последние новости</div>
+              <button onClick={() => go("news")} style={{ fontSize: ".72rem", color: B, fontFamily: "'Inter',sans-serif", fontWeight: 600 }}>Все →</button>
+            </div>
             <div className="space-y-2.5">
               {recentNews.map((n, i) => (
                 <div key={i} className="flex items-center gap-3">
                   <div style={{ width: 6, height: 6, borderRadius: "50%", background: n.draft ? "#f59e0b" : B, flexShrink: 0 }} />
-                  <span style={{ fontSize: ".85rem", color: INK, flex: 1 }}>{n.title}</span>
+                  <span style={{ fontSize: ".85rem", color: INK, flex: 1 }} className="truncate">{n.title}</span>
                   {n.draft ? (
-                    <span style={{ fontSize: ".7rem", background: "rgba(245,158,11,.1)", color: "#f59e0b", padding: "2px 8px", borderRadius: 999, fontWeight: 600 }}>черновик</span>
+                    <span style={{ fontSize: ".7rem", background: "rgba(245,158,11,.1)", color: "#f59e0b", padding: "2px 8px", borderRadius: 999, fontWeight: 600, flexShrink: 0 }}>черновик</span>
                   ) : (
-                    <span style={{ fontSize: ".72rem", color: MUT }}>{n.date}</span>
+                    <span style={{ fontSize: ".72rem", color: MUT, flexShrink: 0 }}>{n.date}</span>
                   )}
                 </div>
               ))}
@@ -2625,7 +2635,7 @@ export default function Index() {
       <div>
         {isPublicSection ? (
           <main>
-            {section === "news"     && <NewsSection adminBar={superAdminBar} />}
+            {section === "news"     && <NewsSection adminBar={superAdminBar} news={news} />}
             {section === "projects" && <ProjectsSection adminBar={superAdminBar} />}
             {section === "tenders"  && <TendersSection user={user} onAddApp={handleAddApp} go={go} isAdmin adminBar={superAdminBar} />}
           </main>
