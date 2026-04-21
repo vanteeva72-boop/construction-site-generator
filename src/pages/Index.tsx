@@ -7,12 +7,12 @@ interface User { name: string; role: UserRole; email: string; }
 
 // ─── Data ─────────────────────────────────────────────────────────────────────
 const PROJECTS = [
-  { id: 1, title: "Жилой комплекс «Северная звезда»", type: "ПГС", year: 2024, area: "48 500 м²", img: "https://cdn.poehali.dev/projects/232d353a-884c-46d3-ba1a-b2a0e421060f/files/32c14947-3147-4e77-8f6d-a8717f8e0d95.jpg", status: "Завершён" },
-  { id: 2, title: "Участок метро «Тропарёво – Румянцево»", type: "Метро и тоннели", year: 2023, area: "3.4 км", img: "https://cdn.poehali.dev/projects/232d353a-884c-46d3-ba1a-b2a0e421060f/files/32c14947-3147-4e77-8f6d-a8717f8e0d95.jpg", status: "Завершён" },
-  { id: 3, title: "Автомагистраль М-12 «Восток»", type: "Дорожное строительство", year: 2024, area: "12.5 км", img: "https://cdn.poehali.dev/projects/232d353a-884c-46d3-ba1a-b2a0e421060f/files/32c14947-3147-4e77-8f6d-a8717f8e0d95.jpg", status: "В процессе" },
-  { id: 4, title: "Инженерные сети микрорайона «Новый»", type: "Инженерная инфраструктура", year: 2023, area: "18 600 м²", img: "https://cdn.poehali.dev/projects/232d353a-884c-46d3-ba1a-b2a0e421060f/files/32c14947-3147-4e77-8f6d-a8717f8e0d95.jpg", status: "Завершён" },
-  { id: 5, title: "Эстакада на ТТК, участок 4А", type: "Дорожное строительство", year: 2024, area: "820 м", img: "https://cdn.poehali.dev/projects/232d353a-884c-46d3-ba1a-b2a0e421060f/files/32c14947-3147-4e77-8f6d-a8717f8e0d95.jpg", status: "В процессе" },
-  { id: 6, title: "Проект реконструкции депо «Печатники»", type: "Проектирование", year: 2023, area: "—", img: "https://cdn.poehali.dev/projects/232d353a-884c-46d3-ba1a-b2a0e421060f/files/32c14947-3147-4e77-8f6d-a8717f8e0d95.jpg", status: "Завершён" },
+  { id: 1, title: "Парк «Зарядье»", type: "ПГС", year: 2018, area: "83 850 м²", img: "https://cdn.poehali.dev/projects/232d353a-884c-46d3-ba1a-b2a0e421060f/files/e7d33189-c4c9-42f0-baac-ca5bee03b32f.jpg", status: "Сдан" },
+  { id: 7, title: "Дворец гимнастики Ирины Винер-Усмановой", type: "ПГС", year: 2019, area: "25 730 м²", img: "https://cdn.poehali.dev/projects/232d353a-884c-46d3-ba1a-b2a0e421060f/files/14342ed9-5d30-453e-a8c4-28fd96757927.jpg", status: "Сдан" },
+  { id: 2, title: "Участок метро «Южная – Коммунарка»", type: "Метро и тоннели", year: 2019, area: "6.4 км", img: "https://cdn.poehali.dev/projects/232d353a-884c-46d3-ba1a-b2a0e421060f/files/03ec1b03-d6a3-43b2-bece-dab3c668cab4.jpg", status: "Сдан" },
+  { id: 3, title: "Московский скоростной диаметр (МСД)", type: "Дорожное строительство", year: 2026, area: "13,5 км", img: "https://cdn.poehali.dev/projects/232d353a-884c-46d3-ba1a-b2a0e421060f/files/194d7c9e-67dc-4f48-a1b5-274d467f3c76.jpg", status: "В процессе" },
+  { id: 5, title: "Транспортная система Мнёвниковской поймы", type: "Дорожное строительство", year: 2026, area: "11,7 км", img: "https://cdn.poehali.dev/projects/232d353a-884c-46d3-ba1a-b2a0e421060f/files/194d7c9e-67dc-4f48-a1b5-274d467f3c76.jpg", status: "В процессе" },
+  { id: 4, title: "Инженерная инфраструктура АДЦ «Коммунарка»", type: "Инженерная инфраструктура", year: 2023, area: "18 км", img: "https://cdn.poehali.dev/projects/232d353a-884c-46d3-ba1a-b2a0e421060f/files/32c14947-3147-4e77-8f6d-a8717f8e0d95.jpg", status: "Сдан" },
 ];
 const NEWS = [
   { id: 1, date: "18 апреля 2026", category: "Компания", title: "АО УРСТ вошло в топ-10 строительных компаний России", text: "По итогам ежегодного рейтинга отраслевого портала, компания заняла 7-е место среди крупнейших строительных организаций страны." },
@@ -486,7 +486,7 @@ function AboutSection() {
 // ─── Projects ─────────────────────────────────────────────────────────────────
 function ProjectsSection() {
   const [filter, setFilter] = useState("Все");
-  const types = ["Все", "Метро и тоннели", "Дорожное строительство", "ПГС", "Инженерная инфраструктура", "Проектирование"];
+  const types = ["Все", "ПГС", "Метро и тоннели", "Дорожное строительство", "Инженерная инфраструктура"];
   const filtered = filter === "Все" ? PROJECTS : PROJECTS.filter(p => p.type === filter);
 
   return (
@@ -518,14 +518,14 @@ function ProjectsSection() {
                   <div className="absolute bottom-3 left-3 right-3 flex justify-between items-end">
                     <span className="chip" style={{ background: "rgba(0,0,0,.5)", borderColor: "rgba(255,255,255,.15)", color: "#fff" }}>{p.type}</span>
                     <span className="text-xs font-semibold px-2.5 py-1 rounded-full"
-                      style={{ fontFamily: "'Inter',sans-serif", background: p.status === "Завершён" ? "rgba(34,197,94,.85)" : "rgba(0,102,255,.85)", color: "#fff" }}>
+                      style={{ fontFamily: "'Inter',sans-serif", background: p.status === "Сдан" ? "rgba(34,197,94,.85)" : "rgba(0,102,255,.85)", color: "#fff" }}>
                       {p.status}
                     </span>
                   </div>
                 </div>
                 <div className="p-5">
                   <h3 style={{ fontFamily: "'Inter',sans-serif", fontWeight: 700, fontSize: ".9rem", color: INK, marginBottom: 10, lineHeight: 1.4 }}>{p.title}</h3>
-                  <div className="flex gap-4" style={{ fontSize: ".78rem", color: MUT }}>
+                  <div className="flex gap-4" style={{ fontSize: ".78rem", color: "#4A5568" }}>
                     <span className="flex items-center gap-1"><Icon name="Calendar" size={11} /> {p.year}</span>
                     <span className="flex items-center gap-1"><Icon name="Maximize2" size={11} /> {p.area}</span>
                   </div>
