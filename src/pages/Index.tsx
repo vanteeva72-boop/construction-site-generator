@@ -1040,23 +1040,23 @@ function Footer({ go }: { go: (s: Section) => void }) {
             </div>
             <div>
               <div style={{ fontFamily: "'Inter',sans-serif", fontWeight: 800, fontSize: ".9rem", color: "#fff" }}>АО УРСТ</div>
-              <div style={{ fontSize: ".65rem", color: "rgba(255,255,255,.3)", letterSpacing: ".05em" }}>с 2013 года</div>
+              <div style={{ fontSize: ".65rem", color: "rgba(255,255,255,.55)", letterSpacing: ".05em" }}>с 2013 года</div>
             </div>
           </div>
-          <p style={{ fontSize: ".8rem", color: "rgba(255,255,255,.3)", lineHeight: 1.65 }}>Полный цикл строительства от проектирования до сдачи объекта.</p>
+          <p style={{ fontSize: ".8rem", color: "rgba(255,255,255,.55)", lineHeight: 1.65 }}>Полный цикл строительства от проектирования до сдачи объекта.</p>
         </div>
         <div>
-          <div style={{ fontSize: ".7rem", fontWeight: 700, letterSpacing: ".1em", color: "rgba(255,255,255,.3)", textTransform: "uppercase", marginBottom: 12, fontFamily: "'Inter',sans-serif" }}>Навигация</div>
+          <div style={{ fontSize: ".7rem", fontWeight: 700, letterSpacing: ".1em", color: "rgba(255,255,255,.55)", textTransform: "uppercase", marginBottom: 12, fontFamily: "'Inter',sans-serif" }}>Навигация</div>
           <div className="space-y-2">
             {(["home", "about", "projects", "news"] as Section[]).map(s => (
-              <button key={s} onClick={() => go(s)} style={{ display: "block", fontSize: ".82rem", color: "rgba(255,255,255,.45)", fontFamily: "'Golos Text',sans-serif" }}
+              <button key={s} onClick={() => go(s)} style={{ display: "block", fontSize: ".82rem", color: "rgba(255,255,255,.7)", fontFamily: "'Golos Text',sans-serif" }}
                 className="hover:text-white transition-colors">{labels[s]}</button>
             ))}
           </div>
         </div>
         <div>
-          <div style={{ fontSize: ".7rem", fontWeight: 700, letterSpacing: ".1em", color: "rgba(255,255,255,.3)", textTransform: "uppercase", marginBottom: 12, fontFamily: "'Inter',sans-serif" }}>Контакты</div>
-          <div className="space-y-2.5" style={{ fontSize: ".82rem", color: "rgba(255,255,255,.4)" }}>
+          <div style={{ fontSize: ".7rem", fontWeight: 700, letterSpacing: ".1em", color: "rgba(255,255,255,.55)", textTransform: "uppercase", marginBottom: 12, fontFamily: "'Inter',sans-serif" }}>Контакты</div>
+          <div className="space-y-2.5" style={{ fontSize: ".82rem", color: "rgba(255,255,255,.7)" }}>
             <div className="flex items-center gap-2"><Icon name="Phone" size={11} /> +7 (495) 940-07-03</div>
             <div className="flex items-center gap-2"><Icon name="Mail" size={11} /> info@ao-urst.ru</div>
             <div className="flex items-center gap-2"><Icon name="MapPin" size={11} /> г. Москва, ул. Климашкина 22 с 2</div>
@@ -1065,11 +1065,11 @@ function Footer({ go }: { go: (s: Section) => void }) {
       </div>
       <div style={{ borderTop: "1px solid rgba(255,255,255,.06)" }} className="py-5 px-6">
         <div className="max-w-7xl mx-auto flex flex-col md:flex-row items-center justify-between gap-4">
-          <div style={{ fontSize: ".75rem", color: "rgba(255,255,255,.2)", fontFamily: "'Inter',sans-serif" }}>
+          <div style={{ fontSize: ".75rem", color: "rgba(255,255,255,.5)", fontFamily: "'Inter',sans-serif" }}>
             © 2026 АО «УРСТ». Все права защищены.
           </div>
           <div className="flex items-center gap-3">
-            <span style={{ fontSize: ".7rem", color: "rgba(255,255,255,.4)", fontFamily: "'Inter',sans-serif" }}>Входит в группу</span>
+            <span style={{ fontSize: ".7rem", color: "rgba(255,255,255,.6)", fontFamily: "'Inter',sans-serif" }}>Входит в группу</span>
             <img
               src="https://cdn.poehali.dev/projects/232d353a-884c-46d3-ba1a-b2a0e421060f/bucket/13ef7463-bb6a-411e-a582-2df6633a7c73.png"
               alt="Мосинжпроект"
