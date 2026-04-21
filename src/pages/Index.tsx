@@ -15,10 +15,10 @@ const PROJECTS = [
   { id: 4, title: "Инженерная инфраструктура АДЦ «Коммунарка»", type: "Инженерная инфраструктура", year: 2023, area: "18 км", img: "https://cdn.poehali.dev/projects/232d353a-884c-46d3-ba1a-b2a0e421060f/files/32c14947-3147-4e77-8f6d-a8717f8e0d95.jpg", status: "Сдан" },
 ];
 const NEWS = [
-  { id: 1, date: "18 апреля 2026", category: "Компания", title: "АО УРСТ вошло в топ-10 строительных компаний России", text: "По итогам ежегодного рейтинга отраслевого портала, компания заняла 7-е место среди крупнейших строительных организаций страны." },
-  { id: 2, date: "10 апреля 2026", category: "Проекты", title: "Начало строительства нового участка метро на севере города", text: "На этой неделе официально стартовал один из крупнейших транспортных проектов этого года — участок метро протяжённостью 4.2 км." },
-  { id: 3, date: "2 апреля 2026", category: "Тендеры", title: "Победа в государственном тендере на строительство дороги", text: "Наша компания одержала победу в конкурсе на возведение участка автомагистрали. Стоимость контракта — 2.1 млрд рублей." },
-  { id: 4, date: "25 марта 2026", category: "Компания", title: "Открытие нового регионального офиса в Санкт-Петербурге", text: "В рамках стратегии расширения географии присутствия открылся наш офис в Северной столице." },
+  { id: 1, date: "18 апреля 2026", category: "Компания", title: "АО УРСТ вошло в топ-10 строительных компаний России", text: "По итогам ежегодного рейтинга отраслевого портала, компания заняла 7-е место среди крупнейших строительных организаций страны.", full: "По итогам ежегодного рейтинга отраслевого портала «СтройРейтинг», АО «УРСТ» заняло 7-е место среди крупнейших строительных организаций России по объёму выполненных работ за 2025 год.\n\nВ рейтинге оцениваются финансовая устойчивость, количество завершённых объектов, соблюдение сроков и качество работ. В этом году компания поднялась на три позиции по сравнению с прошлым годом.\n\nГенеральный директор АО «УРСТ» отметил, что данное достижение — результат слаженной работы всего коллектива и чёткого следования стратегии устойчивого развития. В ближайшие годы компания планирует войти в топ-5 ведущих строительных организаций страны, расширив портфель проектов в сфере транспортной и инженерной инфраструктуры." },
+  { id: 2, date: "10 апреля 2026", category: "Проекты", title: "Начало строительства нового участка метро на севере города", text: "На этой неделе официально стартовал один из крупнейших транспортных проектов этого года — участок метро протяжённостью 4.2 км.", full: "На этой неделе официально стартовал один из крупнейших транспортных проектов текущего года — строительство нового участка метро на севере Москвы протяжённостью 4.2 км с тремя новыми станциями.\n\nАО «УРСТ» выступает генеральным подрядчиком по тоннельным и отделочным работам. Контракт предусматривает строительство перегонных тоннелей методом щитовой проходки, возведение станционных комплексов и монтаж инженерных систем.\n\nСрок завершения работ — IV квартал 2027 года. Общий объём финансирования составляет порядка 18 млрд рублей. На объекте будет задействовано более 800 специалистов компании." },
+  { id: 3, date: "2 апреля 2026", category: "Тендеры", title: "Победа в государственном тендере на строительство дороги", text: "Наша компания одержала победу в конкурсе на возведение участка автомагистрали. Стоимость контракта — 2.1 млрд рублей.", full: "АО «УРСТ» одержало победу в открытом государственном конкурсе на строительство участка автомагистрали протяжённостью 12.4 км в Подмосковье. Стоимость контракта составила 2.1 млрд рублей.\n\nВ рамках проекта планируется возведение двухполосного шоссе с расширением до четырёх полос, строительство двух транспортных развязок, двух путепроводов и системы ливневой канализации. Дорога свяжет два крупных жилых массива и снизит транспортную нагрузку на существующие артерии.\n\nСрок выполнения работ — 24 месяца с момента подписания контракта. Проектная документация уже разработана и прошла государственную экспертизу." },
+  { id: 4, date: "25 марта 2026", category: "Компания", title: "Открытие нового регионального офиса в Москве", text: "В рамках стратегии расширения географии присутствия открылся наш новый офис в Москве по адресу ул. 5-я Магистральная, 10.", full: "В марте 2026 года АО «УРСТ» открыло новый офис в Москве по адресу ул. 5-я Магистральная, 10. Расширение географии присутствия продиктовано ростом портфеля проектов в столичном регионе.\n\nВ новом офисе разместятся проектный отдел, отдел по работе с заказчиками и технический надзор. Площадь офиса составляет 480 кв. м, здесь будет работать более 60 сотрудников.\n\nОткрытие нового офиса позволит компании оперативнее взаимодействовать с заказчиками и партнёрами, а также усилить присутствие в Московском регионе, который является ключевым для стратегии развития АО «УРСТ» на ближайшие пять лет." },
 ];
 const TENDERS = [
   { id: 1, title: "Строительство тоннельного участка метро", deadline: "15 мая 2026", budget: "от 4.5 млрд ₽", type: "Открытый конкурс", status: "active" },
@@ -364,7 +364,7 @@ function HomeSection({ go }: { go: (s: Section) => void }) {
           </div>
           <div className="grid grid-cols-1 md:grid-cols-3 gap-5">
             {NEWS.slice(0, 3).map((n, idx) => (
-              <div key={n.id} className="card-lift bg-white rounded-2xl overflow-hidden group cursor-pointer"
+              <div key={n.id} onClick={() => go("news")} className="card-lift bg-white rounded-2xl overflow-hidden group cursor-pointer"
                 style={{ border: "1px solid #E4E8F0" }}>
                 <div style={{ height: 4, background: idx === 0 ? B : "#E4E8F0" }} />
                 <div className="p-6">
@@ -539,8 +539,41 @@ function ProjectsSection() {
   );
 }
 
+// ─── News Modal ────────────────────────────────────────────────────────────────
+function NewsModal({ news, onClose }: { news: typeof NEWS[0]; onClose: () => void }) {
+  return (
+    <div className="fixed inset-0 z-50 flex items-start justify-center p-4 pt-16 overflow-y-auto" style={{ background: "rgba(10,15,30,.6)", backdropFilter: "blur(4px)" }}
+      onClick={e => { if (e.target === e.currentTarget) onClose(); }}>
+      <div className="bg-white rounded-2xl w-full max-w-2xl shadow-2xl overflow-hidden" onClick={e => e.stopPropagation()}>
+        <div style={{ height: 4, background: B }} />
+        <div className="p-8">
+          <div className="flex items-start justify-between gap-4 mb-6">
+            <div>
+              <div className="flex items-center gap-2 mb-3">
+                <span className="chip">{news.category}</span>
+                <span style={{ fontSize: ".72rem", color: MUT }}>{news.date}</span>
+              </div>
+              <h2 style={{ fontFamily: "'Inter',sans-serif", fontWeight: 800, fontSize: "1.2rem", color: INK, lineHeight: 1.4 }}>{news.title}</h2>
+            </div>
+            <button onClick={onClose} className="flex-shrink-0 rounded-full p-2 hover:bg-gray-100 transition-colors" style={{ color: MUT }}>
+              <Icon name="X" size={18} />
+            </button>
+          </div>
+          <div style={{ fontSize: ".9rem", color: "#374151", lineHeight: 1.8 }}>
+            {news.full.split("\n\n").map((p, i) => (
+              <p key={i} style={{ marginBottom: i < news.full.split("\n\n").length - 1 ? 16 : 0 }}>{p}</p>
+            ))}
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+}
+
 // ─── News ─────────────────────────────────────────────────────────────────────
 function NewsSection() {
+  const [selected, setSelected] = useState<typeof NEWS[0] | null>(null);
+
   return (
     <div>
       <PageHeader label="Пресс-центр" title="Новости" sub="Актуальные события компании и отрасли." />
@@ -549,7 +582,7 @@ function NewsSection() {
           <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
             <div className="lg:col-span-2 space-y-4">
               {NEWS.map(n => (
-                <div key={n.id} className="card-lift rounded-2xl overflow-hidden group cursor-pointer" style={{ border: "1px solid #E4E8F0" }}>
+                <div key={n.id} onClick={() => setSelected(n)} className="card-lift rounded-2xl overflow-hidden group cursor-pointer" style={{ border: "1px solid #E4E8F0" }}>
                   <div className="flex">
                     <div style={{ width: 3, background: B, flexShrink: 0 }} />
                     <div className="p-6">
@@ -568,12 +601,6 @@ function NewsSection() {
               ))}
             </div>
             <div className="space-y-4">
-              <div className="rounded-2xl p-6" style={{ background: "#F7F8FC", border: "1px solid #E4E8F0" }}>
-                <h3 style={{ fontFamily: "'Inter',sans-serif", fontWeight: 700, fontSize: ".88rem", color: INK, marginBottom: 8 }}>Подписка на новости</h3>
-                <p style={{ fontSize: ".8rem", color: MUT, marginBottom: 12 }}>Получайте важные новости компании первыми.</p>
-                <input type="email" className="field mb-3" placeholder="Ваш email" />
-                <button className="btn-primary w-full justify-center text-xs py-2.5">Подписаться</button>
-              </div>
               <div className="rounded-2xl p-6" style={{ background: INK }}>
                 <h3 style={{ fontFamily: "'Inter',sans-serif", fontWeight: 700, fontSize: ".88rem", color: "#fff", marginBottom: 12 }}>Пресс-служба</h3>
                 <div className="space-y-2.5" style={{ fontSize: ".82rem", color: "rgba(255,255,255,.5)" }}>
@@ -586,6 +613,7 @@ function NewsSection() {
           </div>
         </div>
       </div>
+      {selected && <NewsModal news={selected} onClose={() => setSelected(null)} />}
     </div>
   );
 }
@@ -723,12 +751,16 @@ function DocsSection({ user }: { user: User | null }) {
 }
 
 // ─── Contacts ─────────────────────────────────────────────────────────────────
-function ContactsSection() {
+function ContactsSection({ user, onLogin }: { user: User | null; onLogin: () => void }) {
+  const [sent, setSent] = useState(false);
   const offices = [
     { city: "Москва (Главный офис)", address: "г. Москва, ул. Климашкина 22 с 2", phone: "+7 (495) 940-07-03", email: "info@ao-urst.ru" },
-    { city: "Санкт-Петербург", address: "Невский пр., д. 112, оф. 304", phone: "+7 (812) 940-07-03", email: "spb@ao-urst.ru" },
-    { city: "Екатеринбург", address: "ул. Ленина, д. 52, оф. 201", phone: "+7 (343) 940-07-03", email: "ekb@ao-urst.ru" },
+    { city: "Москва (Офис)", address: "г. Москва, ул. 5-я Магистральная 10", phone: "+7 (495) 374-18-92", email: "office2@ao-urst.ru" },
   ];
+
+  const handleSend = () => {
+    setSent(true);
+  };
 
   return (
     <div>
@@ -740,40 +772,66 @@ function ContactsSection() {
             <div className="section-label mb-2">Форма связи</div>
             <div className="accent-bar mb-5" />
             <h2 className="section-title mb-7">Написать нам</h2>
-            <div className="space-y-4">
-              <div className="grid grid-cols-2 gap-4">
-                <div>
-                  <label className="block text-xs font-semibold mb-1.5 uppercase tracking-wider" style={{ color: MUT, fontFamily: "'Inter',sans-serif" }}>Имя</label>
-                  <input className="field" placeholder="Ваше имя" />
+            {sent ? (
+              <div className="rounded-2xl p-8 text-center" style={{ background: "#F0F7FF", border: "1px solid #C7DDFF" }}>
+                <div className="flex justify-center mb-4">
+                  <div className="rounded-full flex items-center justify-center" style={{ width: 56, height: 56, background: B }}>
+                    <Icon name="CheckCircle" size={28} style={{ color: "#fff" }} />
+                  </div>
+                </div>
+                <h3 style={{ fontFamily: "'Inter',sans-serif", fontWeight: 700, fontSize: "1rem", color: INK, marginBottom: 8 }}>Сообщение отправлено</h3>
+                {!user ? (
+                  <>
+                    <p style={{ fontSize: ".85rem", color: MUT, lineHeight: 1.7, marginBottom: 16 }}>
+                      Ответ на ваш запрос вы можете получить, зарегистрировавшись в личном кабинете.
+                    </p>
+                    <button onClick={onLogin} className="btn-primary justify-center">
+                      Войти в личный кабинет <Icon name="ArrowRight" size={14} />
+                    </button>
+                  </>
+                ) : (
+                  <p style={{ fontSize: ".85rem", color: MUT, lineHeight: 1.7 }}>
+                    Мы свяжемся с вами в ближайшее время.
+                  </p>
+                )}
+                <button onClick={() => setSent(false)} className="mt-4 block mx-auto text-xs" style={{ color: MUT }}>Отправить ещё одно сообщение</button>
+              </div>
+            ) : (
+              <div className="space-y-4">
+                <div className="grid grid-cols-2 gap-4">
+                  <div>
+                    <label className="block text-xs font-semibold mb-1.5 uppercase tracking-wider" style={{ color: MUT, fontFamily: "'Inter',sans-serif" }}>Имя</label>
+                    <input className="field" placeholder="Ваше имя" />
+                  </div>
+                  <div>
+                    <label className="block text-xs font-semibold mb-1.5 uppercase tracking-wider" style={{ color: MUT, fontFamily: "'Inter',sans-serif" }}>Компания</label>
+                    <input className="field" placeholder="Название компании" />
+                  </div>
                 </div>
                 <div>
-                  <label className="block text-xs font-semibold mb-1.5 uppercase tracking-wider" style={{ color: MUT, fontFamily: "'Inter',sans-serif" }}>Компания</label>
-                  <input className="field" placeholder="Название компании" />
+                  <label className="block text-xs font-semibold mb-1.5 uppercase tracking-wider" style={{ color: MUT, fontFamily: "'Inter',sans-serif" }}>Email</label>
+                  <input type="email" className="field" placeholder="email@company.ru" />
                 </div>
+                <div>
+                  <label className="block text-xs font-semibold mb-1.5 uppercase tracking-wider" style={{ color: MUT, fontFamily: "'Inter',sans-serif" }}>Телефон</label>
+                  <input className="field" placeholder="+7 (___) ___-__-__" />
+                </div>
+                <div>
+                  <label className="block text-xs font-semibold mb-1.5 uppercase tracking-wider" style={{ color: MUT, fontFamily: "'Inter',sans-serif" }}>Тема</label>
+                  <select className="field">
+                    <option>Строительный проект</option>
+                    <option>Участие в тендере</option>
+                    <option>Партнёрство</option>
+                    <option>Другое</option>
+                  </select>
+                </div>
+                <div>
+                  <label className="block text-xs font-semibold mb-1.5 uppercase tracking-wider" style={{ color: MUT, fontFamily: "'Inter',sans-serif" }}>Сообщение</label>
+                  <textarea className="field" rows={4} placeholder="Опишите ваш запрос…" />
+                </div>
+                <button onClick={handleSend} className="btn-primary w-full justify-center">Отправить сообщение <Icon name="Send" size={14} /></button>
               </div>
-              <div>
-                <label className="block text-xs font-semibold mb-1.5 uppercase tracking-wider" style={{ color: MUT, fontFamily: "'Inter',sans-serif" }}>Email</label>
-                <input type="email" className="field" placeholder="email@company.ru" />
-              </div>
-              <div>
-                <label className="block text-xs font-semibold mb-1.5 uppercase tracking-wider" style={{ color: MUT, fontFamily: "'Inter',sans-serif" }}>Телефон</label>
-                <input className="field" placeholder="+7 (___) ___-__-__" />
-              </div>
-              <div>
-                <label className="block text-xs font-semibold mb-1.5 uppercase tracking-wider" style={{ color: MUT, fontFamily: "'Inter',sans-serif" }}>Тема</label>
-                <select className="field">
-                  <option>Строительный проект</option>
-                  <option>Участие в тендере</option>
-                  <option>Партнёрство</option>
-                  <option>Другое</option>
-                </select>
-              </div>
-              <div>
-                <label className="block text-xs font-semibold mb-1.5 uppercase tracking-wider" style={{ color: MUT, fontFamily: "'Inter',sans-serif" }}>Сообщение</label>
-                <textarea className="field" rows={4} placeholder="Опишите ваш запрос…" />
-              </div>
-              <button className="btn-primary w-full justify-center">Отправить сообщение <Icon name="Send" size={14} /></button>
-            </div>
+            )}
           </div>
 
           {/* Offices */}
@@ -793,10 +851,53 @@ function ContactsSection() {
                 </div>
               ))}
             </div>
-            <div className="rounded-2xl p-6" style={{ background: INK }}>
-              <h3 style={{ fontFamily: "'Inter',sans-serif", fontWeight: 700, fontSize: ".88rem", color: "#fff", marginBottom: 8 }}>Горячая линия</h3>
-              <div style={{ fontFamily: "'Inter',sans-serif", fontWeight: 800, fontSize: "1.6rem", color: "#3385FF", letterSpacing: "-.02em" }}>+7 (495) 940-07-03</div>
-              <div style={{ fontSize: ".78rem", color: "rgba(255,255,255,.4)", marginTop: 4 }}>Пн–Пт, 9:00–18:00</div>
+
+            {/* Logo */}
+            <div className="flex items-center gap-3 mb-6 p-4 rounded-2xl" style={{ background: INK }}>
+              <img
+                src="https://cdn.poehali.dev/projects/232d353a-884c-46d3-ba1a-b2a0e421060f/bucket/13ef7463-bb6a-411e-a582-2df6633a7c73.png"
+                alt="АО УРСТ"
+                style={{ height: 36, width: "auto", objectFit: "contain", filter: "brightness(0) invert(1)" }}
+              />
+              <div>
+                <div style={{ fontFamily: "'Inter',sans-serif", fontWeight: 800, fontSize: ".9rem", color: "#fff" }}>АО УРСТ</div>
+                <div style={{ fontSize: ".7rem", color: "rgba(255,255,255,.4)" }}>с 2013 года</div>
+              </div>
+            </div>
+
+            {/* Реквизиты */}
+            <div className="rounded-2xl p-6" style={{ border: "1px solid #E4E8F0" }}>
+              <h3 style={{ fontFamily: "'Inter',sans-serif", fontWeight: 700, fontSize: ".88rem", color: INK, marginBottom: 14 }}>Реквизиты</h3>
+              <p style={{ fontFamily: "'Inter',sans-serif", fontWeight: 600, fontSize: ".82rem", color: INK, marginBottom: 12 }}>
+                Акционерное общество «Управление развития строительных технологий»
+              </p>
+              <div className="space-y-2" style={{ fontSize: ".82rem" }}>
+                {[
+                  ["ИНН", "7703800010"],
+                  ["КПП", "770301001"],
+                  ["ОГРН", "5137746040372"],
+                  ["ОКПО", "03994521"],
+                ].map(([k, v]) => (
+                  <div key={k} className="flex justify-between gap-4" style={{ borderBottom: "1px solid #F0F2F7", paddingBottom: 6 }}>
+                    <span style={{ color: MUT }}>{k}</span>
+                    <span style={{ color: INK, fontWeight: 600, fontFamily: "'Inter',sans-serif" }}>{v}</span>
+                  </div>
+                ))}
+                <div style={{ marginTop: 12, paddingTop: 8, borderTop: "1px solid #E4E8F0" }}>
+                  <div style={{ fontSize: ".75rem", color: MUT, marginBottom: 8, fontWeight: 600, textTransform: "uppercase", letterSpacing: ".06em" }}>Банковские реквизиты</div>
+                  {[
+                    ["Расчётный счёт", "40702810638170022413"],
+                    ["Банк", "ПАО СБЕРБАНК"],
+                    ["БИК", "044525225"],
+                    ["Корр. счёт", "30101810400000000225"],
+                  ].map(([k, v]) => (
+                    <div key={k} className="flex justify-between gap-4 mb-1.5">
+                      <span style={{ color: MUT }}>{k}</span>
+                      <span style={{ color: INK, fontWeight: 600, fontFamily: "'Inter',sans-serif", textAlign: "right" }}>{v}</span>
+                    </div>
+                  ))}
+                </div>
+              </div>
             </div>
           </div>
         </div>
@@ -1127,7 +1228,7 @@ export default function Index() {
         {section === "news"     && <NewsSection />}
         {section === "tenders"  && <TendersSection user={user} />}
         {section === "docs"     && <DocsSection user={user} />}
-        {section === "contacts" && <ContactsSection />}
+        {section === "contacts" && <ContactsSection user={user} onLogin={() => setShowLogin(true)} />}
       </main>
       <Footer go={go} />
       {showLogin && <LoginModal onClose={() => setShowLogin(false)} onLogin={u => { setUser(u); setShowLogin(false); }} />}
