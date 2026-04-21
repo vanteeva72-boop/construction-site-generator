@@ -7,8 +7,8 @@ interface User { name: string; role: UserRole; email: string; }
 
 // ─── Data ─────────────────────────────────────────────────────────────────────
 const PROJECTS = [
-  { id: 1, title: "Парк «Зарядье»", type: "ПГС", year: 2018, area: "83 850 м²", img: "https://cdn.poehali.dev/projects/232d353a-884c-46d3-ba1a-b2a0e421060f/files/e7d33189-c4c9-42f0-baac-ca5bee03b32f.jpg", status: "Сдан" },
-  { id: 7, title: "Дворец гимнастики Ирины Винер-Усмановой", type: "ПГС", year: 2019, area: "25 730 м²", img: "https://cdn.poehali.dev/projects/232d353a-884c-46d3-ba1a-b2a0e421060f/files/14342ed9-5d30-453e-a8c4-28fd96757927.jpg", status: "Сдан" },
+  { id: 1, title: "Парк «Зарядье»", type: "ПГС", year: 2018, area: "83 850 м²", img: "https://cdn.poehali.dev/projects/232d353a-884c-46d3-ba1a-b2a0e421060f/bucket/10fe1108-41e2-4553-953a-cb83313f04c8.jpg", status: "Сдан" },
+  { id: 7, title: "Дворец гимнастики Ирины Винер-Усмановой", type: "ПГС", year: 2019, area: "25 730 м²", img: "https://cdn.poehali.dev/projects/232d353a-884c-46d3-ba1a-b2a0e421060f/bucket/582f8aa5-35a9-400f-b230-6632fc6056e0.jpg", status: "Сдан" },
   { id: 2, title: "Участок метро «Южная – Коммунарка»", type: "Метро и тоннели", year: 2019, area: "6.4 км", img: "https://cdn.poehali.dev/projects/232d353a-884c-46d3-ba1a-b2a0e421060f/files/03ec1b03-d6a3-43b2-bece-dab3c668cab4.jpg", status: "Сдан" },
   { id: 3, title: "Московский скоростной диаметр (МСД)", type: "Дорожное строительство", year: 2026, area: "13,5 км", img: "https://cdn.poehali.dev/projects/232d353a-884c-46d3-ba1a-b2a0e421060f/files/194d7c9e-67dc-4f48-a1b5-274d467f3c76.jpg", status: "В процессе" },
   { id: 5, title: "Транспортная система Мнёвниковской поймы", type: "Дорожное строительство", year: 2026, area: "11,7 км", img: "https://cdn.poehali.dev/projects/232d353a-884c-46d3-ba1a-b2a0e421060f/files/194d7c9e-67dc-4f48-a1b5-274d467f3c76.jpg", status: "В процессе" },
