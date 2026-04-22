@@ -2326,7 +2326,7 @@ function UserCabinet({ user, setUser, messages, tenderApps, go }: {
                     <button onClick={() => { setUser({ ...user, consentGiven: false, consentDate: undefined }); setRevokeConfirm(false); }}
                       className="flex-1 py-2.5 rounded-xl font-semibold text-sm text-white"
                       style={{ background: "#ef4444", fontFamily: "'Inter',sans-serif" }}>Отозвать</button>
-                    <button onClick={() => setRevokeConfirm(false)} className="flex-1 py-2.5 rounded-xl font-semibold text-sm btn-outline">Отмена</button>
+                    <button onClick={() => setRevokeConfirm(false)} className="flex-1 py-2.5 rounded-xl font-semibold text-sm btn-outline flex items-center justify-center">Отмена</button>
                   </div>
                 </div>
               </div>
