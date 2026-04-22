@@ -12,6 +12,9 @@ interface Message {
   text: string;
   reply?: string;
   replyDate?: string;
+  userEmail?: string;
+  userName?: string;
+  read?: boolean;
 }
 
 interface TenderApp {
@@ -20,8 +23,11 @@ interface TenderApp {
   tenderTitle: string;
   company: string;
   inn: string;
-  status: "pending" | "review" | "accepted" | "rejected";
+  status: "pending" | "review" | "accepted" | "rejected" | "approved" | "correction";
   feedback?: string;
+  adminComment?: string;
+  userEmail?: string;
+  fileName?: string;
 }
 
 // ─── Data ─────────────────────────────────────────────────────────────────────
@@ -281,7 +287,11 @@ function LoginModal({ onClose, onLogin, onRegister }: { onClose: () => void; onL
 
   return (
     <>
-      {showPrivacy && <PrivacyPolicyModal onClose={() => setShowPrivacy(false)} />}
+      {showPrivacy && (
+        <div style={{ position: "fixed", inset: 0, zIndex: 200 }}>
+          <PrivacyPolicyModal onClose={() => setShowPrivacy(false)} />
+        </div>
+      )}
       <div className="modal-backdrop animate-fade-in" onClick={onClose}>
         <div className="bg-white w-full max-w-md animate-scale-in"
           style={{ borderRadius: 16, boxShadow: "0 32px 80px rgba(5,9,26,.25)", overflow: "hidden" }}
@@ -2178,12 +2188,98 @@ function ContactsSection({ user, onLogin, onSend }: { user: User | null; onLogin
   );
 }
 
+// ─── App Card (для кабинета пользователя) ────────────────────────────────────
+function AppCard({ app, statusLabel, statusColor, onUpdate }: {
+  app: TenderApp;
+  statusLabel: Record<string, string>;
+  statusColor: Record<string, string>;
+  onUpdate: (fields: Partial<TenderApp>) => void;
+}) {
+  const [editing, setEditing] = useState(false);
+  const [company, setCompany] = useState(app.company);
+  const [inn, setInn] = useState(app.inn);
+  const [fileName, setFileName] = useState(app.fileName || "");
+  const isCorrection = app.status === "correction";
+
+  const save = () => {
+    onUpdate({ company, inn, fileName: fileName || undefined, status: "pending" });
+    setEditing(false);
+  };
+
+  return (
+    <div className="bg-white rounded-2xl p-6" style={{ border: `1.5px solid ${isCorrection ? "#f97316" : "#E4E8F0"}` }}>
+      <div className="flex items-start justify-between gap-4 mb-2">
+        <h3 style={{ fontFamily: "'Inter',sans-serif", fontWeight: 700, fontSize: ".9rem", color: INK }}>{app.tenderTitle}</h3>
+        <span className="flex items-center gap-1 text-xs font-bold flex-shrink-0" style={{ color: statusColor[app.status] || "#6b7280", fontFamily: "'Inter',sans-serif" }}>
+          ● {statusLabel[app.status] || app.status}
+        </span>
+      </div>
+
+      {!editing ? (
+        <>
+          <div className="flex flex-wrap gap-4 mb-3" style={{ fontSize: ".8rem", color: MUT }}>
+            <span>{app.company}</span><span>ИНН: {app.inn}</span><span>{app.date}</span>
+            {app.fileName && <span><Icon name="Paperclip" size={11} /> {app.fileName}</span>}
+          </div>
+          {app.adminComment && isCorrection && (
+            <div className="p-4 rounded-xl mb-3" style={{ background: "#FFF7ED", borderLeft: "3px solid #f97316" }}>
+              <div className="flex items-center gap-2 mb-1">
+                <Icon name="AlertCircle" size={13} style={{ color: "#f97316" }} />
+                <span style={{ fontSize: ".75rem", fontWeight: 700, color: "#f97316", fontFamily: "'Inter',sans-serif" }}>Необходима корректировка</span>
+              </div>
+              <p style={{ fontSize: ".85rem", color: INK, lineHeight: 1.6 }}>{app.adminComment}</p>
+            </div>
+          )}
+          {app.feedback && !isCorrection && (
+            <div className="p-4 rounded-xl" style={{ background: "#F0F7FF", borderLeft: `3px solid ${B}` }}>
+              <div className="flex items-center gap-2 mb-1">
+                <Icon name="MessageSquare" size={13} style={{ color: B }} />
+                <span style={{ fontSize: ".75rem", fontWeight: 700, color: B, fontFamily: "'Inter',sans-serif" }}>Обратная связь от АО УРСТ</span>
+              </div>
+              <p style={{ fontSize: ".85rem", color: INK }}>{app.feedback}</p>
+            </div>
+          )}
+          {isCorrection && (
+            <button onClick={() => setEditing(true)} className="mt-3 btn-outline text-xs py-2 px-4 flex items-center gap-2">
+              <Icon name="Pencil" size={12} /> Внести изменения и отправить повторно
+            </button>
+          )}
+        </>
+      ) : (
+        <div className="space-y-3 mt-3">
+          <div>
+            <label className="block text-xs font-semibold mb-1 uppercase tracking-wider" style={{ color: MUT, fontFamily: "'Inter',sans-serif" }}>Название компании</label>
+            <input className="field" value={company} onChange={e => setCompany(e.target.value)} />
+          </div>
+          <div>
+            <label className="block text-xs font-semibold mb-1 uppercase tracking-wider" style={{ color: MUT, fontFamily: "'Inter',sans-serif" }}>ИНН</label>
+            <input className="field" value={inn} onChange={e => setInn(e.target.value)} />
+          </div>
+          <div>
+            <label className="block text-xs font-semibold mb-1 uppercase tracking-wider" style={{ color: MUT, fontFamily: "'Inter',sans-serif" }}>Прикрепить документ</label>
+            <label className="flex items-center gap-3 p-3 rounded-xl cursor-pointer" style={{ border: "1.5px dashed #CBD5E1" }}>
+              <Icon name="Upload" size={15} style={{ color: MUT }} />
+              <span style={{ fontSize: ".82rem", color: fileName ? INK : MUT }}>{fileName || "Выбрать файл (PDF, DOCX)"}</span>
+              <input type="file" accept=".pdf,.doc,.docx" className="hidden" onChange={e => setFileName(e.target.files?.[0]?.name || "")} />
+            </label>
+          </div>
+          <div className="flex gap-2">
+            <button onClick={save} className="btn-primary text-xs py-2 px-4 flex items-center gap-2"><Icon name="Send" size={12} /> Отправить повторно</button>
+            <button onClick={() => setEditing(false)} className="btn-outline text-xs py-2 px-4">Отмена</button>
+          </div>
+        </div>
+      )}
+    </div>
+  );
+}
+
 // ─── User Cabinet ─────────────────────────────────────────────────────────────
-function UserCabinet({ user, setUser, messages, tenderApps, go }: {
+function UserCabinet({ user, setUser, messages, tenderApps, setTenderApps, go }: {
   user: User;
   setUser: (u: User) => void;
   messages: Message[];
   tenderApps: TenderApp[];
+  setTenderApps: React.Dispatch<React.SetStateAction<TenderApp[]>>;
   go: (s: Section) => void;
 }) {
   const [tab, setTab] = useState<"profile" | "messages" | "apps">("profile");
@@ -2194,17 +2290,15 @@ function UserCabinet({ user, setUser, messages, tenderApps, go }: {
   const [showPrivacyCab, setShowPrivacyCab] = useState(false);
   const [revokeConfirm, setRevokeConfirm] = useState(false);
 
-  const statusLabel: Record<TenderApp["status"], string> = {
-    pending: "На рассмотрении",
-    review: "Изучается",
-    accepted: "Принята",
-    rejected: "Отклонена",
+  const statusLabel: Record<string, string> = {
+    pending: "На рассмотрении", review: "На рассмотрении",
+    accepted: "Согласована", approved: "Согласована",
+    rejected: "Отказ", correction: "Необходима корректировка",
   };
-  const statusColor: Record<TenderApp["status"], string> = {
-    pending: "#f59e0b",
-    review: "#3b82f6",
-    accepted: "#16a34a",
-    rejected: "#ef4444",
+  const statusColor: Record<string, string> = {
+    pending: "#f59e0b", review: "#3b82f6",
+    accepted: "#16a34a", approved: "#16a34a",
+    rejected: "#ef4444", correction: "#f97316",
   };
 
   return (
@@ -2380,29 +2474,9 @@ function UserCabinet({ user, setUser, messages, tenderApps, go }: {
                 <p style={{ color: MUT, fontSize: ".88rem" }}>Вы ещё не подавали заявок на тендеры.</p>
                 <button onClick={() => go("tenders")} className="btn-primary mt-4 justify-center text-xs py-2 px-5">Перейти к тендерам</button>
               </div>
-            ) : tenderApps.map(app => (
-              <div key={app.id} className="bg-white rounded-2xl p-6" style={{ border: "1px solid #E4E8F0" }}>
-                <div className="flex items-start justify-between gap-4 mb-2">
-                  <h3 style={{ fontFamily: "'Inter',sans-serif", fontWeight: 700, fontSize: ".9rem", color: INK }}>{app.tenderTitle}</h3>
-                  <span style={{ fontSize: ".72rem", fontWeight: 700, color: statusColor[app.status], flexShrink: 0, fontFamily: "'Inter',sans-serif" }}>
-                    ● {statusLabel[app.status]}
-                  </span>
-                </div>
-                <div className="flex gap-4 mb-3" style={{ fontSize: ".8rem", color: MUT }}>
-                  <span>{app.company}</span>
-                  <span>ИНН: {app.inn}</span>
-                  <span>{app.date}</span>
-                </div>
-                {app.feedback && (
-                  <div className="p-4 rounded-xl" style={{ background: "#F0F7FF", borderLeft: `3px solid ${B}` }}>
-                    <div className="flex items-center gap-2 mb-1">
-                      <Icon name="MessageSquare" size={13} style={{ color: B }} />
-                      <span style={{ fontSize: ".75rem", fontWeight: 700, color: B, fontFamily: "'Inter',sans-serif" }}>Обратная связь от АО УРСТ</span>
-                    </div>
-                    <p style={{ fontSize: ".85rem", color: INK }}>{app.feedback}</p>
-                  </div>
-                )}
-              </div>
+            ) : [...tenderApps].filter(a => a.userEmail === user.email || !a.userEmail).sort((a, b) => b.id - a.id).map(app => (
+              <AppCard key={app.id} app={app} statusLabel={statusLabel} statusColor={statusColor}
+                onUpdate={fields => setTenderApps(prev => prev.map(a => a.id === app.id ? { ...a, ...fields } : a))} />
             ))}
           </div>
         )}
@@ -3108,8 +3182,312 @@ function AdminCabinet({ user, setUser, onBack, onLogout, roleLabel }: {
   );
 }
 
+// ─── Admin Apps Page ──────────────────────────────────────────────────────────
+const APP_STATUS_LABELS: Record<string, string> = {
+  pending: "На рассмотрении", review: "На рассмотрении", accepted: "Согласована",
+  approved: "Согласована", rejected: "Отказ", correction: "Необходима корректировка",
+};
+const APP_STATUS_COLORS: Record<string, string> = {
+  pending: "#f59e0b", review: "#3b82f6", accepted: "#16a34a",
+  approved: "#16a34a", rejected: "#ef4444", correction: "#f97316",
+};
+
+function AdminAppsPage({ onBack, tenderApps, setTenderApps }: {
+  onBack: () => void;
+  tenderApps: TenderApp[];
+  setTenderApps: React.Dispatch<React.SetStateAction<TenderApp[]>>;
+}) {
+  const [selected, setSelected] = useState<TenderApp | null>(null);
+  const [comment, setComment] = useState("");
+  const [commentErr, setCommentErr] = useState("");
+
+  const updateApp = (id: number, fields: Partial<TenderApp>) => {
+    setTenderApps(prev => prev.map(a => a.id === id ? { ...a, ...fields } : a));
+    if (selected?.id === id) setSelected(prev => prev ? { ...prev, ...fields } : null);
+  };
+
+  const setStatus = (app: TenderApp, status: TenderApp["status"]) => {
+    if (status === "correction") {
+      if (!comment.trim()) { setCommentErr("Введите комментарий для корректировки"); return; }
+      updateApp(app.id, { status, adminComment: comment, feedback: comment });
+      setComment(""); setCommentErr("");
+    } else {
+      const feedbacks: Record<string, string> = {
+        approved: "Ваша заявка согласована. Ожидайте выхода на связь нашего менеджера.",
+        rejected: "К сожалению, ваша заявка отклонена. Свяжитесь с нами для уточнения деталей.",
+        pending: "Заявка принята и находится на рассмотрении.",
+      };
+      updateApp(app.id, { status, adminComment: undefined, feedback: feedbacks[status] || undefined });
+    }
+  };
+
+  return (
+    <div style={{ background: "#F7F8FC", minHeight: "100vh" }}>
+      <div style={{ background: INK, borderBottom: "1px solid rgba(255,255,255,.06)" }} className="px-6 py-4">
+        <div className="max-w-7xl mx-auto flex items-center gap-4">
+          <button onClick={onBack} className="p-2 rounded-xl hover:bg-white/10 transition-all" style={{ color: "rgba(255,255,255,.6)" }}>
+            <Icon name="ArrowLeft" size={18} />
+          </button>
+          <div>
+            <div style={{ fontFamily: "'Inter',sans-serif", fontWeight: 800, fontSize: "1.1rem", color: "#fff" }}>Заявки на тендеры</div>
+            <div style={{ fontSize: ".78rem", color: "rgba(255,255,255,.4)", marginTop: 2 }}>Управление заявками участников</div>
+          </div>
+        </div>
+      </div>
+
+      <div className="max-w-7xl mx-auto px-4 py-8 flex gap-6">
+        {/* Список */}
+        <div className="flex-1 min-w-0">
+          {tenderApps.length === 0 ? (
+            <div className="bg-white rounded-2xl p-12 text-center" style={{ border: "1px solid #E4E8F0" }}>
+              <Icon name="ClipboardList" size={36} style={{ color: "#D1D5DB", margin: "0 auto 12px" }} />
+              <p style={{ color: MUT, fontSize: ".88rem" }}>Заявок пока нет</p>
+            </div>
+          ) : (
+            <div className="space-y-3">
+              {[...tenderApps].sort((a, b) => b.id - a.id).map(app => (
+                <button key={app.id} onClick={() => { setSelected(app); setComment(""); setCommentErr(""); }}
+                  className="w-full bg-white rounded-2xl p-5 text-left transition-all hover:shadow-md"
+                  style={{ border: `1.5px solid ${selected?.id === app.id ? B : "#E4E8F0"}` }}>
+                  <div className="flex items-start justify-between gap-3">
+                    <div className="flex-1 min-w-0">
+                      <p style={{ fontFamily: "'Inter',sans-serif", fontWeight: 700, fontSize: ".9rem", color: INK, marginBottom: 4 }} className="truncate">
+                        {app.tenderTitle}
+                      </p>
+                      <div className="flex flex-wrap gap-x-4 gap-y-1" style={{ fontSize: ".78rem", color: MUT }}>
+                        <span>{app.company}</span>
+                        <span>ИНН: {app.inn}</span>
+                        <span>{app.date}</span>
+                        {app.userEmail && <span style={{ color: B }}>{app.userEmail}</span>}
+                      </div>
+                    </div>
+                    <span className="flex-shrink-0 text-xs font-semibold px-2.5 py-1 rounded-full"
+                      style={{ background: (APP_STATUS_COLORS[app.status] || "#6b7280") + "18", color: APP_STATUS_COLORS[app.status] || "#6b7280", fontFamily: "'Inter',sans-serif" }}>
+                      {APP_STATUS_LABELS[app.status] || app.status}
+                    </span>
+                  </div>
+                </button>
+              ))}
+            </div>
+          )}
+        </div>
+
+        {/* Детали */}
+        {selected && (
+          <div className="w-96 flex-shrink-0">
+            <div className="bg-white rounded-2xl overflow-hidden sticky top-6" style={{ border: "1px solid #E4E8F0" }}>
+              <div style={{ height: 4, background: APP_STATUS_COLORS[selected.status] || B }} />
+              <div className="p-6">
+                <div className="flex items-start justify-between gap-2 mb-5">
+                  <h3 style={{ fontFamily: "'Inter',sans-serif", fontWeight: 700, fontSize: ".92rem", color: INK, lineHeight: 1.4 }}>{selected.tenderTitle}</h3>
+                  <button onClick={() => setSelected(null)} className="p-1.5 rounded-full hover:bg-gray-100" style={{ color: MUT, flexShrink: 0 }}>
+                    <Icon name="X" size={14} />
+                  </button>
+                </div>
+
+                <div className="space-y-3 mb-5">
+                  {[
+                    { label: "Компания", value: selected.company },
+                    { label: "ИНН", value: selected.inn },
+                    { label: "Дата подачи", value: selected.date },
+                    { label: "Email заявителя", value: selected.userEmail || "—" },
+                    { label: "Файл", value: selected.fileName || "Не прикреплён" },
+                  ].map(({ label, value }) => (
+                    <div key={label}>
+                      <div style={{ fontSize: ".7rem", color: MUT, fontWeight: 600, textTransform: "uppercase", letterSpacing: ".06em", fontFamily: "'Inter',sans-serif", marginBottom: 2 }}>{label}</div>
+                      <div style={{ fontSize: ".85rem", color: INK, fontFamily: "'Golos Text',sans-serif" }}>{value}</div>
+                    </div>
+                  ))}
+                </div>
+
+                <div className="mb-5 p-3 rounded-xl" style={{ background: "#F7F8FC", border: "1px solid #E4E8F0" }}>
+                  <div style={{ fontSize: ".7rem", color: MUT, fontWeight: 600, textTransform: "uppercase", letterSpacing: ".06em", fontFamily: "'Inter',sans-serif", marginBottom: 4 }}>Текущий статус</div>
+                  <span className="text-sm font-semibold" style={{ color: APP_STATUS_COLORS[selected.status] || "#6b7280", fontFamily: "'Inter',sans-serif" }}>
+                    {APP_STATUS_LABELS[selected.status] || selected.status}
+                  </span>
+                  {selected.adminComment && (
+                    <p style={{ fontSize: ".8rem", color: MUT, marginTop: 6, lineHeight: 1.5 }}>Комментарий: {selected.adminComment}</p>
+                  )}
+                </div>
+
+                <div className="space-y-2 mb-4">
+                  <div style={{ fontSize: ".75rem", color: MUT, fontWeight: 600, fontFamily: "'Inter',sans-serif", marginBottom: 6 }}>ИЗМЕНИТЬ СТАТУС</div>
+                  {([
+                    { s: "pending" as const, label: "На рассмотрении", color: "#f59e0b" },
+                    { s: "approved" as const, label: "Согласована", color: "#16a34a" },
+                    { s: "rejected" as const, label: "Отказ", color: "#ef4444" },
+                    { s: "correction" as const, label: "Необходима корректировка", color: "#f97316" },
+                  ]).map(({ s, label, color }) => (
+                    <button key={s} onClick={() => setStatus(selected, s)}
+                      className="w-full px-4 py-2.5 rounded-xl text-sm font-semibold text-left transition-all flex items-center justify-between"
+                      style={{
+                        background: selected.status === s ? color + "18" : "#F7F8FC",
+                        border: `1.5px solid ${selected.status === s ? color : "#E4E8F0"}`,
+                        color: selected.status === s ? color : INK,
+                        fontFamily: "'Inter',sans-serif",
+                      }}>
+                      {label}
+                      {selected.status === s && <Icon name="Check" size={14} />}
+                    </button>
+                  ))}
+                </div>
+
+                <div>
+                  <label className="block text-xs font-semibold mb-1.5 uppercase tracking-wider" style={{ color: MUT, fontFamily: "'Inter',sans-serif" }}>
+                    Комментарий <span style={{ color: "#f97316" }}>(обязателен при корректировке)</span>
+                  </label>
+                  <textarea value={comment} onChange={e => { setComment(e.target.value); setCommentErr(""); }}
+                    rows={3} placeholder="Укажите, что необходимо исправить..."
+                    className="field w-full resize-none" style={{ borderColor: commentErr ? "#ef4444" : undefined }} />
+                  {commentErr && <p style={{ color: "#ef4444", fontSize: ".75rem", marginTop: 4 }}>{commentErr}</p>}
+                  <button onClick={() => { if (comment.trim()) { updateApp(selected.id, { adminComment: comment, feedback: comment }); setComment(""); } }}
+                    disabled={!comment.trim()}
+                    className="mt-2 w-full btn-outline text-sm" style={{ opacity: comment.trim() ? 1 : 0.4 }}>
+                    Сохранить комментарий
+                  </button>
+                </div>
+              </div>
+            </div>
+          </div>
+        )}
+      </div>
+    </div>
+  );
+}
+
+// ─── Admin Inbox Page ─────────────────────────────────────────────────────────
+function AdminInboxPage({ onBack, messages, setMessages }: {
+  onBack: () => void;
+  messages: Message[];
+  setMessages: React.Dispatch<React.SetStateAction<Message[]>>;
+}) {
+  const [selected, setSelected] = useState<Message | null>(null);
+
+  const AUTO_REPLY = "Добрый день! Спасибо за обращение. Мы готовы рассмотреть ваш проект. Наш менеджер свяжется с вами в течение одного рабочего дня.";
+
+  const openMessage = (m: Message) => {
+    setSelected(m);
+    if (!m.read) {
+      setMessages(prev => prev.map(msg => msg.id === m.id ? { ...msg, read: true } : msg));
+      setSelected({ ...m, read: true });
+    }
+  };
+
+  const sendReply = (m: Message) => {
+    const replyDate = new Date().toLocaleDateString("ru-RU", { day: "numeric", month: "long", year: "numeric" });
+    setMessages(prev => prev.map(msg => msg.id === m.id ? { ...msg, reply: AUTO_REPLY, replyDate, read: true } : msg));
+    setSelected(prev => prev ? { ...prev, reply: AUTO_REPLY, replyDate } : null);
+  };
+
+  return (
+    <div style={{ background: "#F7F8FC", minHeight: "100vh" }}>
+      <div style={{ background: INK, borderBottom: "1px solid rgba(255,255,255,.06)" }} className="px-6 py-4">
+        <div className="max-w-7xl mx-auto flex items-center gap-4">
+          <button onClick={onBack} className="p-2 rounded-xl hover:bg-white/10 transition-all" style={{ color: "rgba(255,255,255,.6)" }}>
+            <Icon name="ArrowLeft" size={18} />
+          </button>
+          <div>
+            <div style={{ fontFamily: "'Inter',sans-serif", fontWeight: 800, fontSize: "1.1rem", color: "#fff" }}>Входящие сообщения</div>
+            <div style={{ fontSize: ".78rem", color: "rgba(255,255,255,.4)", marginTop: 2 }}>
+              Обращения от пользователей · Непрочитанных: {messages.filter(m => !m.read).length}
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div className="max-w-7xl mx-auto px-4 py-8 flex gap-6">
+        {/* Список */}
+        <div className="flex-1 min-w-0">
+          {messages.length === 0 ? (
+            <div className="bg-white rounded-2xl p-12 text-center" style={{ border: "1px solid #E4E8F0" }}>
+              <Icon name="Mail" size={36} style={{ color: "#D1D5DB", margin: "0 auto 12px" }} />
+              <p style={{ color: MUT, fontSize: ".88rem" }}>Сообщений пока нет</p>
+            </div>
+          ) : (
+            <div className="space-y-2">
+              {[...messages].sort((a, b) => b.id - a.id).map(m => (
+                <button key={m.id} onClick={() => openMessage(m)}
+                  className="w-full bg-white rounded-2xl p-5 text-left transition-all hover:shadow-md"
+                  style={{ border: `1.5px solid ${selected?.id === m.id ? B : "#E4E8F0"}`, opacity: m.read ? 0.8 : 1 }}>
+                  <div className="flex items-start gap-3">
+                    <div className="w-2 h-2 rounded-full flex-shrink-0 mt-2" style={{ background: m.read ? "transparent" : B }} />
+                    <div className="flex-1 min-w-0">
+                      <div className="flex items-center justify-between gap-2 mb-1">
+                        <span style={{ fontFamily: "'Inter',sans-serif", fontWeight: m.read ? 600 : 800, fontSize: ".88rem", color: INK }}>{m.subject}</span>
+                        <span style={{ fontSize: ".72rem", color: MUT, flexShrink: 0 }}>{m.date}</span>
+                      </div>
+                      {m.userName && <div style={{ fontSize: ".75rem", color: B, marginBottom: 3 }}>{m.userName} · {m.userEmail}</div>}
+                      <p style={{ fontSize: ".82rem", color: MUT, lineHeight: 1.5 }} className="line-clamp-2">{m.text}</p>
+                      {m.reply && <div className="mt-2 flex items-center gap-1" style={{ fontSize: ".72rem", color: "#16a34a" }}>
+                        <Icon name="CornerDownRight" size={11} /> Ответ отправлен
+                      </div>}
+                    </div>
+                  </div>
+                </button>
+              ))}
+            </div>
+          )}
+        </div>
+
+        {/* Детали */}
+        {selected && (
+          <div className="w-96 flex-shrink-0">
+            <div className="bg-white rounded-2xl overflow-hidden sticky top-6" style={{ border: "1px solid #E4E8F0" }}>
+              <div style={{ height: 4, background: B }} />
+              <div className="p-6">
+                <div className="flex items-start justify-between gap-2 mb-4">
+                  <h3 style={{ fontFamily: "'Inter',sans-serif", fontWeight: 700, fontSize: ".95rem", color: INK }}>{selected.subject}</h3>
+                  <button onClick={() => setSelected(null)} className="p-1.5 rounded-full hover:bg-gray-100" style={{ color: MUT, flexShrink: 0 }}>
+                    <Icon name="X" size={14} />
+                  </button>
+                </div>
+
+                {selected.userName && (
+                  <div className="flex items-center gap-2 mb-4 p-3 rounded-xl" style={{ background: "#F7F8FC" }}>
+                    <div className="w-8 h-8 rounded-lg flex items-center justify-center text-white text-xs font-bold flex-shrink-0" style={{ background: B, fontFamily: "'Inter',sans-serif" }}>
+                      {selected.userName.charAt(0)}
+                    </div>
+                    <div>
+                      <div style={{ fontSize: ".82rem", fontWeight: 600, color: INK, fontFamily: "'Inter',sans-serif" }}>{selected.userName}</div>
+                      <div style={{ fontSize: ".72rem", color: MUT }}>{selected.userEmail} · {selected.date}</div>
+                    </div>
+                  </div>
+                )}
+
+                <div className="p-4 rounded-xl mb-4" style={{ background: "#F7F8FC", border: "1px solid #E4E8F0" }}>
+                  <p style={{ fontSize: ".85rem", color: INK, lineHeight: 1.7, fontFamily: "'Golos Text',sans-serif" }}>{selected.text}</p>
+                </div>
+
+                {selected.reply ? (
+                  <div className="p-4 rounded-xl" style={{ background: "#F0F7FF", borderLeft: `3px solid ${B}` }}>
+                    <div className="flex items-center gap-2 mb-2">
+                      <Icon name="CornerDownRight" size={13} style={{ color: B }} />
+                      <span style={{ fontSize: ".72rem", fontWeight: 700, color: B, fontFamily: "'Inter',sans-serif" }}>Ответ отправлен · {selected.replyDate}</span>
+                    </div>
+                    <p style={{ fontSize: ".82rem", color: INK, lineHeight: 1.6, fontFamily: "'Golos Text',sans-serif" }}>{selected.reply}</p>
+                  </div>
+                ) : (
+                  <div>
+                    <div className="p-3 rounded-xl mb-3" style={{ background: "rgba(0,102,255,.04)", border: "1px solid rgba(0,102,255,.12)" }}>
+                      <div style={{ fontSize: ".72rem", color: MUT, marginBottom: 4, fontFamily: "'Inter',sans-serif" }}>Автоматический ответ:</div>
+                      <p style={{ fontSize: ".8rem", color: INK, lineHeight: 1.6, fontFamily: "'Golos Text',sans-serif" }}>{AUTO_REPLY}</p>
+                    </div>
+                    <button onClick={() => sendReply(selected)} className="btn-primary w-full justify-center">
+                      <Icon name="Send" size={14} /> Отправить ответ
+                    </button>
+                  </div>
+                )}
+              </div>
+            </div>
+          </div>
+        )}
+      </div>
+    </div>
+  );
+}
+
 // ─── Superadmin Dashboard ─────────────────────────────────────────────────────
-function SuperAdminDashboard({ user, setUser, onLogout, go, cfg, onCfgSave, initialView, onViewChange, sharedNews, setSharedNews, sharedProjects, sharedTenders, setSharedTenders, sharedDocs, setSharedDocs, sharedUsers, setSharedUsers }: {
+function SuperAdminDashboard({ user, setUser, onLogout, go, cfg, onCfgSave, initialView, onViewChange, sharedNews, setSharedNews, sharedProjects, sharedTenders, setSharedTenders, sharedDocs, setSharedDocs, sharedUsers, setSharedUsers, sharedTenderApps, setSharedTenderApps, sharedMessages, setSharedMessages }: {
   user: User; setUser: (u: User) => void; onLogout: () => void; go: (s: Section) => void;
   cfg: SiteConfig; onCfgSave: (c: SiteConfig) => void;
   initialView?: "dashboard" | "cabinet"; onViewChange?: () => void;
@@ -3118,8 +3496,10 @@ function SuperAdminDashboard({ user, setUser, onLogout, go, cfg, onCfgSave, init
   sharedTenders?: TenderItem[]; setSharedTenders?: React.Dispatch<React.SetStateAction<TenderItem[]>>;
   sharedDocs?: DocSection[]; setSharedDocs?: React.Dispatch<React.SetStateAction<DocSection[]>>;
   sharedUsers?: AdminUser[]; setSharedUsers?: React.Dispatch<React.SetStateAction<AdminUser[]>>;
+  sharedTenderApps?: TenderApp[]; setSharedTenderApps?: React.Dispatch<React.SetStateAction<TenderApp[]>>;
+  sharedMessages?: Message[]; setSharedMessages?: React.Dispatch<React.SetStateAction<Message[]>>;
 }) {
-  const [view, setView] = useState<"dashboard" | "users" | "settings" | "cabinet">(initialView || "dashboard");
+  const [view, setView] = useState<"dashboard" | "users" | "settings" | "cabinet" | "apps" | "inbox">(initialView || "dashboard");
   const [users, setUsers] = useState<AdminUser[]>(sharedUsers ?? USERS_INITIAL);
   const [news, setNews] = useState<NewsItem[]>(sharedNews ?? NEWS_INITIAL);
   const [toast, setToast] = useState("");
@@ -3134,6 +3514,16 @@ function SuperAdminDashboard({ user, setUser, onLogout, go, cfg, onCfgSave, init
   const handleSetUsers: React.Dispatch<React.SetStateAction<AdminUser[]>> = (action) => {
     setUsers(action);
     setSharedUsers?.(action);
+  };
+
+  const tenderApps = sharedTenderApps ?? [];
+  const handleSetTenderApps: React.Dispatch<React.SetStateAction<TenderApp[]>> = (action) => {
+    setSharedTenderApps?.(action);
+  };
+
+  const allMessages = sharedMessages ?? [];
+  const handleSetMessages: React.Dispatch<React.SetStateAction<Message[]>> = (action) => {
+    setSharedMessages?.(action);
   };
 
   useEffect(() => {
@@ -3156,12 +3546,16 @@ function SuperAdminDashboard({ user, setUser, onLogout, go, cfg, onCfgSave, init
     if (s.subsections) return acc + s.subsections.reduce((a, sub) => a + sub.docs.length, 0);
     return acc;
   }, 0);
+  const unreadMessages = allMessages.filter(m => !m.read).length;
+  const pendingApps = tenderApps.filter(a => a.status === "pending").length;
+
   const statCards = [
     { icon: "Newspaper", label: "Новости", value: publishedNews.length, sub: `Черновиков: ${draftNews.length}`, color: "#0066FF", onClick: () => go("news") },
     { icon: "HardHat", label: "Проекты", value: (sharedProjects ?? PROJECTS_INITIAL).length, sub: `Всего: ${(sharedProjects ?? PROJECTS_INITIAL).length}`, color: "#8b5cf6", onClick: () => go("projects") },
     { icon: "FileText", label: "Тендеры", value: activeTendersCount, sub: `Активных: ${activeTendersCount}`, color: "#f59e0b", onClick: () => go("tenders") },
     { icon: "Users", label: "Пользователи", value: users.length, sub: `Всего: ${users.length}`, color: "#10b981", onClick: () => setView("users") },
-    { icon: "BookOpen", label: "Документы", value: totalDocs, sub: `Разделов: ${docsArr.length}`, color: "#6366f1", onClick: () => go("docs") },
+    { icon: "ClipboardList", label: "Заявки", value: tenderApps.length, sub: `Новых: ${pendingApps}`, color: "#ef4444", onClick: () => setView("apps") },
+    { icon: "Mail", label: "Сообщения", value: allMessages.length, sub: `Непрочитанных: ${unreadMessages}`, color: "#6366f1", onClick: () => setView("inbox") },
   ];
 
   const recentNews = [...news]
@@ -3181,12 +3575,16 @@ function SuperAdminDashboard({ user, setUser, onLogout, go, cfg, onCfgSave, init
     { icon: "FileText", label: "Добавить тендер", onClick: () => setAddTender(true), color: "#f59e0b" },
     { icon: "UserPlus", label: "Добавить пользователя", onClick: () => setAddUser(true), color: "#10b981" },
     { icon: "FilePlus", label: "Добавить документ", onClick: () => setAddDoc(true), color: "#0066FF" },
+    { icon: "ClipboardList", label: "Заявки на тендеры", onClick: () => setView("apps"), color: "#ef4444" },
+    { icon: "Mail", label: "Входящие сообщения", onClick: () => setView("inbox"), color: "#6366f1" },
     { icon: "Settings", label: "Настройки", onClick: () => setView("settings"), color: "#6b7280" },
   ];
 
   if (view === "users") return <UsersPage onBack={() => setView("dashboard")} users={users} setUsers={handleSetUsers} />;
   if (view === "settings") return <SettingsPage cfg={cfg} onSave={onCfgSave} onBack={() => setView("dashboard")} />;
   if (view === "cabinet") return <AdminCabinet user={user} setUser={setUser} onBack={() => setView("dashboard")} onLogout={onLogout} roleLabel="Суперадминистратор" />;
+  if (view === "apps") return <AdminAppsPage onBack={() => setView("dashboard")} tenderApps={tenderApps} setTenderApps={handleSetTenderApps} />;
+  if (view === "inbox") return <AdminInboxPage onBack={() => setView("dashboard")} messages={allMessages} setMessages={handleSetMessages} />;
 
   return (
     <div style={{ background: "#F7F8FC", minHeight: "100vh" }}>
@@ -3714,11 +4112,10 @@ export default function Index() {
   const [tenders, setTenders] = useState<TenderItem[]>(TENDERS_INITIAL);
   const [docSections, setDocSections] = useState<DocSection[]>(DOCS_INITIAL);
   const [messages, setMessages] = useState<Message[]>([
-    { id: 1, date: "15 апреля 2026", subject: "Строительный проект", text: "Добрый день! Интересует возможность сотрудничества по строительству объекта в Подмосковье. Прошу предоставить информацию о ваших услугах.", reply: "Добрый день! Спасибо за обращение. Мы готовы рассмотреть ваш проект. Наш менеджер свяжется с вами в течение одного рабочего дня.", replyDate: "16 апреля 2026" },
-    { id: 2, date: "10 апреля 2026", subject: "Партнёрство", text: "Здравствуйте, хотели бы обсудить возможность партнёрства в рамках тендера на строительство дороги." },
+    { id: 1, date: "15 апреля 2026", subject: "Строительный проект", text: "Добрый день! Интересует возможность сотрудничества по строительству объекта в Подмосковье. Прошу предоставить информацию о ваших услугах.", reply: "Добрый день! Спасибо за обращение. Мы готовы рассмотреть ваш проект. Наш менеджер свяжется с вами в течение одного рабочего дня.", replyDate: "16 апреля 2026", userEmail: "user@ao-urst.ru", userName: "Сергей Попов", read: true },
   ]);
   const [tenderApps, setTenderApps] = useState<TenderApp[]>([
-    { id: 1, date: "5 апреля 2026", tenderTitle: "Проектирование объектов инфраструктуры", company: "ООО СтройПроект", inn: "7712345678", status: "review", feedback: "Ваша заявка принята в работу. Ожидайте результатов рассмотрения до 25 апреля 2026." },
+    { id: 1, date: "5 апреля 2026", tenderTitle: "Проектирование объектов инфраструктуры", company: "ООО СтройПроект", inn: "7712345678", status: "review", feedback: "Ваша заявка принята в работу. Ожидайте результатов рассмотрения до 25 апреля 2026.", userEmail: "user@ao-urst.ru" },
   ]);
   const [searchQuery, setSearchQuery] = useState("");
   const [users, setUsers] = useState<AdminUser[]>(USERS_INITIAL);
@@ -3752,11 +4149,14 @@ export default function Index() {
       date: new Date().toLocaleDateString("ru-RU", { day: "numeric", month: "long", year: "numeric" }),
       subject,
       text,
+      userEmail: user?.email,
+      userName: user?.name,
+      read: false,
     }]);
   };
 
   const handleAddApp = (app: Omit<TenderApp, "id">) => {
-    setTenderApps(prev => [...prev, { ...app, id: Date.now() }]);
+    setTenderApps(prev => [...prev, { ...app, id: Date.now(), userEmail: user?.email }]);
   };
 
   // Суперадмин — дашборд или публичные разделы
@@ -3780,7 +4180,9 @@ export default function Index() {
             sharedNews={news} setSharedNews={setNews}
             sharedProjects={projects} sharedTenders={tenders} setSharedTenders={setTenders}
             sharedDocs={docSections} setSharedDocs={setDocSections}
-            sharedUsers={users} setSharedUsers={setUsers} />
+            sharedUsers={users} setSharedUsers={setUsers}
+            sharedTenderApps={tenderApps} setSharedTenderApps={setTenderApps}
+            sharedMessages={messages} setSharedMessages={setMessages} />
         )}
       </div>
     );
@@ -3819,7 +4221,7 @@ export default function Index() {
         {section === "docs"     && <DocsSection user={user} docSections={docSections} />}
         {section === "contacts" && <ContactsSection user={user} onLogin={() => setShowLogin(true)} onSend={handleSendMessage} />}
         {section === "cabinet"  && user?.role === "user" && (
-          <UserCabinet user={user} setUser={setUser} messages={messages} tenderApps={tenderApps} go={go} />
+          <UserCabinet user={user} setUser={setUser} messages={messages.filter(m => m.userEmail === user.email || !m.userEmail)} tenderApps={tenderApps} setTenderApps={setTenderApps} go={go} />
         )}
         {section === "search" && (
           <SearchSection
