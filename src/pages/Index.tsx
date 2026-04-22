@@ -238,7 +238,7 @@ function PrivacyPolicyModal({ onClose }: { onClose: () => void }) {
 }
 
 // ─── Login Modal ──────────────────────────────────────────────────────────────
-function LoginModal({ onClose, onLogin }: { onClose: () => void; onLogin: (u: User) => void }) {
+function LoginModal({ onClose, onLogin, onRegister }: { onClose: () => void; onLogin: (u: User) => void; onRegister?: (u: User) => void }) {
   const [tab, setTab] = useState<"login" | "register">("login");
 
   // --- Вход ---
@@ -362,7 +362,7 @@ function LoginModal({ onClose, onLogin }: { onClose: () => void; onLogin: (u: Us
                 <p style={{ fontSize: ".82rem", color: MUT, marginBottom: 24 }}>
                   Ваш аккаунт создан. Теперь вы можете подавать заявки на тендеры и отслеживать их статус.
                 </p>
-                <button onClick={() => onLogin(registeredUser)} className="btn-primary w-full justify-center mb-3">
+                <button onClick={() => (onRegister ?? onLogin)(registeredUser)} className="btn-primary w-full justify-center mb-3">
                   <Icon name="User" size={14} /> Войти в личный кабинет
                 </button>
                 <button onClick={onClose} className="w-full text-sm" style={{ color: MUT }}>Закрыть</button>
@@ -3109,7 +3109,7 @@ function AdminCabinet({ user, setUser, onBack, onLogout, roleLabel }: {
 }
 
 // ─── Superadmin Dashboard ─────────────────────────────────────────────────────
-function SuperAdminDashboard({ user, setUser, onLogout, go, cfg, onCfgSave, initialView, onViewChange, sharedNews, setSharedNews, sharedProjects, sharedTenders, setSharedTenders, sharedDocs, setSharedDocs }: {
+function SuperAdminDashboard({ user, setUser, onLogout, go, cfg, onCfgSave, initialView, onViewChange, sharedNews, setSharedNews, sharedProjects, sharedTenders, setSharedTenders, sharedDocs, setSharedDocs, sharedUsers, setSharedUsers }: {
   user: User; setUser: (u: User) => void; onLogout: () => void; go: (s: Section) => void;
   cfg: SiteConfig; onCfgSave: (c: SiteConfig) => void;
   initialView?: "dashboard" | "cabinet"; onViewChange?: () => void;
@@ -3117,9 +3117,10 @@ function SuperAdminDashboard({ user, setUser, onLogout, go, cfg, onCfgSave, init
   sharedProjects?: ProjectItem[];
   sharedTenders?: TenderItem[]; setSharedTenders?: React.Dispatch<React.SetStateAction<TenderItem[]>>;
   sharedDocs?: DocSection[]; setSharedDocs?: React.Dispatch<React.SetStateAction<DocSection[]>>;
+  sharedUsers?: AdminUser[]; setSharedUsers?: React.Dispatch<React.SetStateAction<AdminUser[]>>;
 }) {
   const [view, setView] = useState<"dashboard" | "users" | "settings" | "cabinet">(initialView || "dashboard");
-  const [users, setUsers] = useState<AdminUser[]>(USERS_INITIAL);
+  const [users, setUsers] = useState<AdminUser[]>(sharedUsers ?? USERS_INITIAL);
   const [news, setNews] = useState<NewsItem[]>(sharedNews ?? NEWS_INITIAL);
   const [toast, setToast] = useState("");
 
@@ -3127,6 +3128,12 @@ function SuperAdminDashboard({ user, setUser, onLogout, go, cfg, onCfgSave, init
   const handleSetNews: React.Dispatch<React.SetStateAction<NewsItem[]>> = (action) => {
     setNews(action);
     setSharedNews?.(action);
+  };
+
+  useEffect(() => { if (sharedUsers) setUsers(sharedUsers); }, [sharedUsers]);
+  const handleSetUsers: React.Dispatch<React.SetStateAction<AdminUser[]>> = (action) => {
+    setUsers(action);
+    setSharedUsers?.(action);
   };
 
   useEffect(() => {
@@ -3177,7 +3184,7 @@ function SuperAdminDashboard({ user, setUser, onLogout, go, cfg, onCfgSave, init
     { icon: "Settings", label: "Настройки", onClick: () => setView("settings"), color: "#6b7280" },
   ];
 
-  if (view === "users") return <UsersPage onBack={() => setView("dashboard")} users={users} setUsers={setUsers} />;
+  if (view === "users") return <UsersPage onBack={() => setView("dashboard")} users={users} setUsers={handleSetUsers} />;
   if (view === "settings") return <SettingsPage cfg={cfg} onSave={onCfgSave} onBack={() => setView("dashboard")} />;
   if (view === "cabinet") return <AdminCabinet user={user} setUser={setUser} onBack={() => setView("dashboard")} onLogout={onLogout} roleLabel="Суперадминистратор" />;
 
@@ -3714,6 +3721,7 @@ export default function Index() {
     { id: 1, date: "5 апреля 2026", tenderTitle: "Проектирование объектов инфраструктуры", company: "ООО СтройПроект", inn: "7712345678", status: "review", feedback: "Ваша заявка принята в работу. Ожидайте результатов рассмотрения до 25 апреля 2026." },
   ]);
   const [searchQuery, setSearchQuery] = useState("");
+  const [users, setUsers] = useState<AdminUser[]>(USERS_INITIAL);
 
   useEffect(() => { window.scrollTo({ top: 0, behavior: "smooth" }); }, [section]);
 
@@ -3721,6 +3729,22 @@ export default function Index() {
   const logout = () => { setUser(null); go("home"); };
 
   const handleSearch = (q: string) => { setSearchQuery(q); setSection("search"); setMob(false); };
+
+  const handleRegister = (u: User) => {
+    const newAdminUser: AdminUser = {
+      id: Date.now(),
+      name: u.name,
+      login: u.email.split("@")[0],
+      email: u.email,
+      phone: u.phone || "—",
+      role: "user",
+      regDate: new Date().toLocaleDateString("ru-RU"),
+      consentGiven: u.consentGiven,
+      consentDate: u.consentDate,
+    };
+    setUsers(prev => [...prev, newAdminUser]);
+    setUser(u);
+  };
 
   const handleSendMessage = (subject: string, text: string) => {
     setMessages(prev => [...prev, {
@@ -3755,7 +3779,8 @@ export default function Index() {
             initialView={adminInitialView} onViewChange={() => setAdminInitialView("dashboard")}
             sharedNews={news} setSharedNews={setNews}
             sharedProjects={projects} sharedTenders={tenders} setSharedTenders={setTenders}
-            sharedDocs={docSections} setSharedDocs={setDocSections} />
+            sharedDocs={docSections} setSharedDocs={setDocSections}
+            sharedUsers={users} setSharedUsers={setUsers} />
         )}
       </div>
     );
@@ -3811,7 +3836,7 @@ export default function Index() {
       </main>
       {section !== "cabinet" && section !== "search" && <Footer go={go} cfg={cfg} />}
       {section === "search" && <Footer go={go} cfg={cfg} />}
-      {showLogin && <LoginModal onClose={() => setShowLogin(false)} onLogin={u => { setUser(u); setShowLogin(false); }} />}
+      {showLogin && <LoginModal onClose={() => setShowLogin(false)} onLogin={u => { setUser(u); setShowLogin(false); }} onRegister={u => { handleRegister(u); setShowLogin(false); }} />}
     </div>
   );
 }
