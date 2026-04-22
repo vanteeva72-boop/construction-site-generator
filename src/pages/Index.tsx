@@ -257,7 +257,7 @@ function LoginModal({ onClose, onLogin }: { onClose: () => void; onLogin: (u: Us
   const [rConsent, setRConsent] = useState(false);
   const [showPrivacy, setShowPrivacy] = useState(false);
   const [rErrors, setRErrors] = useState<Record<string, string>>({});
-  const [registered, setRegistered] = useState(false);
+  const [registeredUser, setRegisteredUser] = useState<User | null>(null);
 
   const submitLogin = (e: React.FormEvent) => {
     e.preventDefault(); setErr("");
@@ -276,8 +276,7 @@ function LoginModal({ onClose, onLogin }: { onClose: () => void; onLogin: (u: Us
     if (!rConsent) errs.consent = "Необходимо принять условия Политики конфиденциальности";
     if (Object.keys(errs).length) { setRErrors(errs); return; }
     const consentDate = new Date().toLocaleDateString("ru-RU");
-    onLogin({ name: rName.trim(), role: "user", email: rEmail.trim(), phone: rPhone.trim() || undefined, company: rCompany.trim() || undefined, consentGiven: true, consentDate });
-    setRegistered(true);
+    setRegisteredUser({ name: rName.trim(), role: "user", email: rEmail.trim(), phone: rPhone.trim() || undefined, company: rCompany.trim() || undefined, consentGiven: true, consentDate });
   };
 
   return (
@@ -349,13 +348,24 @@ function LoginModal({ onClose, onLogin }: { onClose: () => void; onLogin: (u: Us
 
           {/* Register Tab */}
           {tab === "register" && (
-            registered ? (
+            registeredUser ? (
               <div className="px-8 py-10 text-center">
-                <div className="w-14 h-14 rounded-full flex items-center justify-center mx-auto mb-4" style={{ background: "#DCFCE7" }}>
-                  <Icon name="CheckCircle" size={28} style={{ color: "#16a34a" }} />
+                <div className="w-16 h-16 rounded-full flex items-center justify-center mx-auto mb-5" style={{ background: "#DCFCE7" }}>
+                  <Icon name="CheckCircle" size={32} style={{ color: "#16a34a" }} />
                 </div>
-                <h3 style={{ fontFamily: "'Inter',sans-serif", fontWeight: 700, fontSize: "1rem", color: INK, marginBottom: 8 }}>Регистрация успешна!</h3>
-                <p style={{ fontSize: ".85rem", color: MUT }}>Добро пожаловать в личный кабинет АО УРСТ.</p>
+                <h3 style={{ fontFamily: "'Inter',sans-serif", fontWeight: 800, fontSize: "1.1rem", color: INK, marginBottom: 8 }}>
+                  Регистрация успешна!
+                </h3>
+                <p style={{ fontSize: ".88rem", color: MUT, marginBottom: 6 }}>
+                  Добро пожаловать, <strong style={{ color: INK }}>{registeredUser.name}</strong>!
+                </p>
+                <p style={{ fontSize: ".82rem", color: MUT, marginBottom: 24 }}>
+                  Ваш аккаунт создан. Теперь вы можете подавать заявки на тендеры и отслеживать их статус.
+                </p>
+                <button onClick={() => onLogin(registeredUser)} className="btn-primary w-full justify-center mb-3">
+                  <Icon name="User" size={14} /> Войти в личный кабинет
+                </button>
+                <button onClick={onClose} className="w-full text-sm" style={{ color: MUT }}>Закрыть</button>
               </div>
             ) : (
               <form onSubmit={submitRegister} className="px-8 py-6 space-y-4">
